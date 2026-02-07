@@ -1,0 +1,295 @@
+/**
+ * MAPPIOL ULTIMATE CORE
+ * Moteur de gestion immobilière haute performance
+ */
+
+// --- 1. CONFIGURATION ET DONNÉES GÉOGRAPHIQUES ---
+const GEO_ZONES = {
+    "Douala": {
+        "Zone A (Centre)": ["Akwa", "Bali", "Bonapriso", "Bépanda"],
+        "Zone B (Nord)": ["Bonamoussadi", "Makepe", "Kotto", "Logpom", "Lendi"],
+        "Zone C (Sud/Est)": ["Village", "Ndokoti", "Nyalla", "Yassa"]
+    },
+    "Yaoundé": {
+        "Elite": ["Bastos", "Golf", "Minkoamengos"],
+        "Residentiel": ["Biyem-Assi", "Mendong", "Simbock", "Etoudi"]
+    }
+};
+
+// --- 2. STORE (GESTION D'ÉTAT CENTRALISÉE) ---
+const Store = {
+    state: {
+        user: JSON.parse(localStorage.getItem('map_user')) || null,
+        listings: JSON.parse(localStorage.getItem('map_db')) || [],
+        favorites: JSON.parse(localStorage.getItem('map_favs')) || [],
+        filters: { price: 2000000, type: 'all', status: 'Location', query: '' }
+    },
+
+    init() {
+        // Génération de données de test si vide
+        if (this.state.listings.length === 0) {
+            this.generateMockData();
+        }
+        this.sync();
+    },
+
+    sync() {
+        localStorage.setItem('map_db', JSON.stringify(this.state.listings));
+        localStorage.setItem('map_user', JSON.stringify(this.state.user));
+        localStorage.setItem('map_favs', JSON.stringify(this.state.favorites));
+    },
+
+    generateMockData() {
+        const types = ["Chambre", "Studio", "Appartement", "Boutique"];
+        const quartiers = ["Akwa", "Bastos", "Bonamoussadi", "Makepe"];
+        for(let i=1; i<=12; i++) {
+            this.state.listings.push({
+                id: i,
+                title: `${types[i%4]} moderne quartier ${quartiers[i%4]}`,
+                price: (Math.floor(Math.random() * 20) + 5) * 10000,
+                quartier: quartiers[i%4],
+                ville: i < 7 ? "Douala" : "Yaoundé",
+                type: types[i%4],
+                status: i % 3 === 0 ? "Vente" : "Location",
+                img: `https://images.unsplash.com/photo-15${60+i}518883-ce09059eeffa?w=600`,
+                seller: "Mappiol Agent",
+                sellerTel: "+237 600 00 00 00",
+                rating: (Math.random() * 2 + 3).toFixed(1),
+                reviews: [],
+                createdAt: new Date().toISOString()
+            });
+        }
+    }
+};
+
+// --- 3. ENGINE DE RECHERCHE ET PROXIMITÉ ---
+const SearchEngine = {
+    find(query, filters) {
+        const q = query.toLowerCase().trim();
+        
+        // Filtrage de base
+        let results = Store.state.listings.filter(p => {
+            const matchPrice = p.price <= filters.price;
+            const matchType = filters.type === 'all' || p.type === filters.type;
+            const matchStatus = p.status === filters.status;
+            return matchPrice && matchType && matchStatus;
+        });
+
+        if (!q) return { exact: results, nearby: [] };
+
+        // Séparation Matchs Exacts / Proximité
+        const exact = results.filter(p => 
+            p.quartier.toLowerCase().includes(q) || p.ville.toLowerCase().includes(q)
+        );
+
+        let nearby = [];
+        const zoneInfo = this.getZoneByQuartier(q);
+        if (zoneInfo) {
+            nearby = results.filter(p => 
+                zoneInfo.neighbors.includes(p.quartier) && !exact.includes(p)
+            );
+        }
+
+        return { exact, nearby };
+    },
+
+    getZoneByQuartier(name) {
+        for (let ville in GEO_ZONES) {
+            for (let zone in GEO_ZONES[ville]) {
+                const list = GEO_ZONES[ville][zone];
+                if (list.some(q => q.toLowerCase().includes(name))) {
+                    return { name: zone, neighbors: list };
+                }
+            }
+        }
+        return null;
+    }
+};
+
+// --- 4. ROUTER ET NAVIGATION ---
+const Router = {
+    navigate(page, triggerEl = null) {
+        const outlet = document.getElementById('router-outlet');
+        outlet.innerHTML = `<div class="loader-skeleton">Chargement...</div>`;
+        
+        // UI Navigation feedback
+        if (triggerEl) {
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            triggerEl.classList.add('active');
+        }
+
+        setTimeout(() => {
+            outlet.innerHTML = '';
+            switch(page) {
+                case 'home': Pages.renderHome(outlet); break;
+                case 'publish': Pages.renderPublish(outlet); break;
+                case 'profile': Pages.renderProfile(outlet); break;
+                case 'favorites': Pages.renderFavorites(outlet); break;
+                default: Pages.renderHome(outlet);
+            }
+        }, 300);
+    }
+};
+
+// --- 5. PAGES ET COMPOSANTS UI ---
+const Pages = {
+    renderHome(container) {
+        const { exact, nearby } = SearchEngine.find(Store.state.filters.query, Store.state.filters);
+        
+        const section = (title, data, isNearby = false) => {
+            if (data.length === 0) return '';
+            const grid = document.createElement('div');
+            grid.className = 'listing-grid';
+            data.forEach(item => grid.appendChild(this.createCard(item)));
+            
+            const header = `<h2 class="section-title" style="margin: 30px 0 15px; display:flex; align-items:center; gap:10px;">
+                ${isNearby ? '<i class="fa-solid fa-map-location-dot" style="color:var(--text-muted)"></i>' : ''}
+                ${title}
+            </h2>`;
+            container.innerHTML += header;
+            container.appendChild(grid);
+        };
+
+        section(Store.state.filters.query ? `Résultats pour "${Store.state.filters.query}"` : "Annonces à la une", exact);
+        section("Logements à proximité immédiate", nearby, true);
+        
+        if (exact.length === 0 && nearby.length === 0) {
+            container.innerHTML = `<div class="empty-state" style="text-align:center; padding:100px 0;">
+                <i class="fa-solid fa-house-circle-exclamation" style="font-size:60px; color:var(--text-muted); margin-bottom:20px;"></i>
+                <h3>Aucun résultat trouvé</h3>
+                <p>Essayez de modifier vos filtres ou la zone de recherche.</p>
+            </div>`;
+        }
+    },
+
+    createCard(data) {
+        const tpl = document.getElementById('tpl-card');
+        const clone = tpl.content.cloneNode(true);
+        const card = clone.querySelector('.listing-card');
+
+        clone.querySelector('img').src = data.img;
+        clone.querySelector('.card-badge').textContent = `À ${data.status}`;
+        clone.querySelector('.c-type').textContent = data.type;
+        clone.querySelector('.c-title').textContent = data.title;
+        clone.querySelector('.c-loc span').textContent = `${data.quartier}, ${data.ville}`;
+        clone.querySelector('.c-price').textContent = `${data.price.toLocaleString()} FCFA`;
+        clone.querySelector('.c-rating span').textContent = data.rating;
+
+        clone.querySelector('.btn-view').onclick = () => this.showDetails(data);
+        
+        const favBtn = clone.querySelector('.btn-wishlist');
+        if (Store.state.favorites.includes(data.id)) favBtn.classList.add('active');
+        favBtn.onclick = (e) => {
+            e.stopPropagation();
+            UI.toggleFavorite(data.id, favBtn);
+        };
+
+        return clone;
+    },
+
+    showDetails(data) {
+        const body = `
+            <div class="detail-hero">
+                <img src="${data.img}" style="width:100%; height:300px; object-fit:cover; border-radius:15px; margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:start;">
+                    <div>
+                        <span class="badge" style="background:var(--primary-light); color:var(--primary); padding:5px 12px; border-radius:20px; font-weight:700;">${data.type}</span>
+                        <h1 style="margin-top:10px;">${data.title}</h1>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="font-size:28px; font-weight:800;">${data.price.toLocaleString()} FCFA</div>
+                        <div style="color:var(--text-muted)">${data.status === 'Location' ? '/ mois' : 'Prix total'}</div>
+                    </div>
+                </div>
+                <div style="margin:20px 0; display:flex; gap:20px; color:var(--text-muted);">
+                    <span><i class="fa-solid fa-map-location"></i> ${data.quartier}</span>
+                    <span><i class="fa-solid fa-star" style="color:var(--accent)"></i> ${data.rating} Avis</span>
+                </div>
+                <p style="line-height:1.7; color:var(--text-main); margin-bottom:30px;">
+                    Magnifique ${data.type.toLowerCase()} situé en plein coeur de ${data.quartier}. 
+                    Le bien bénéficie d'une sécurité H24, d'un forage et d'un accès facile aux transports.
+                </p>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <a href="tel:${data.sellerTel}" class="btn-primary" style="background:var(--primary); color:white; text-align:center; padding:15px; border-radius:12px; text-decoration:none; font-weight:700;">Appeler l'agent</a>
+                    <button class="btn-secondary" style="border:1px solid var(--border); padding:15px; border-radius:12px; font-weight:700;" onclick="UI.toast('Lien copié !')">Partager</button>
+                </div>
+            </div>
+        `;
+        UI.openModal(body);
+    },
+
+    renderPublish(container) {
+        if (!Store.state.user) {
+            container.innerHTML = `<div class="auth-required">
+                <h2>Connectez-vous pour publier</h2>
+                <button onclick="UI.showLogin()" class="btn-primary">S'identifier</button>
+            </div>`;
+            return;
+        }
+        // Logique formulaire de publication...
+        container.innerHTML = `<h2>Déposer une annonce</h2><p>Formulaire complexe ici...</p>`;
+    }
+};
+
+// --- 6. UTILITAIRES UI (TOASTS, MODALES, FILTRES) ---
+const UI = {
+    toast(msg, type = 'info') {
+        const container = document.getElementById('toast-provider');
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${msg}`;
+        container.appendChild(t);
+        setTimeout(() => t.remove(), 3500);
+    },
+
+    openModal(html) {
+        const modal = document.getElementById('modal-overlay');
+        document.getElementById('modal-body').innerHTML = html;
+        modal.classList.remove('modal-hidden');
+    },
+
+    toggleFilters() {
+        const drawer = document.getElementById('advanced-filters');
+        drawer.classList.toggle('hidden');
+    },
+
+    toggleFavorite(id, btn) {
+        const index = Store.state.favorites.indexOf(id);
+        if (index > -1) {
+            Store.state.favorites.splice(index, 1);
+            btn.classList.remove('active');
+            btn.innerHTML = '<i class="fa-regular fa-heart"></i>';
+        } else {
+            Store.state.favorites.push(id);
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
+            this.toast("Ajouté aux favoris !");
+        }
+        Store.sync();
+    }
+};
+
+// --- 7. INITIALISATION ET EVENTS ---
+document.addEventListener('DOMContentLoaded', () => {
+    Store.init();
+    Router.navigate('home');
+
+    // Moteur de recherche temps réel
+    document.getElementById('global-search').oninput = (e) => {
+        Store.state.filters.query = e.target.value;
+        Router.navigate('home');
+    };
+
+    // Gestion du prix max
+    document.getElementById('filter-price').oninput = (e) => {
+        const val = parseInt(e.target.value);
+        document.getElementById('price-val').textContent = `${val.toLocaleString()} FCFA`;
+        Store.state.filters.price = val;
+        Router.navigate('home');
+    };
+
+    // Fermeture modale
+    document.getElementById('modal-close').onclick = () => {
+        document.getElementById('modal-overlay').classList.add('modal-hidden');
+    };
+});

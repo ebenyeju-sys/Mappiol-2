@@ -1,0 +1,228 @@
+/** * MAPPIOL PRO - CORE ENGINE
+ */
+
+const Store = {
+    state: {
+        user: { name: "Samuel Eto'o", email: "samuel@mappiol.cm", isAgent: false, avatar: "https://i.pravatar.cc/150?u=samuel" },
+        listings: [],
+        favorites: JSON.parse(localStorage.getItem('map_favs')) || [],
+        chats: [
+            { id: 1, agent: "Marc Agent", lastMsg: "Le studio est libre !", time: "10:30", avatar: "https://i.pravatar.cc/150?u=1" }
+        ],
+        filters: { price: 1000000, query: '' }
+    },
+
+    init() {
+        this.generateData();
+        UI.initTheme();
+        Router.navigate('home');
+    },
+
+    generateData() {
+        const quartiers = ["Akwa", "Bastos", "Bonapriso", "Mendong", "Biyem-Assi", "Makepe"];
+        for(let i=1; i<=12; i++) {
+            this.state.listings.push({
+                id: i,
+                title: (i%2 === 0 ? "Studio VIP " : "Appartement ") + i,
+                price: (Math.floor(Math.random() * 8) + 4) * 10000,
+                quartier: quartiers[i%6],
+                ville: i < 7 ? "Douala" : "Yaoundé",
+                type: i%2 === 0 ? "Studio" : "Appartement",
+                img: `https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&sig=${i}`,
+                rating: (Math.random() * 0.5 + 4.5).toFixed(1),
+                sellerTel: "+237600000000"
+            });
+        }
+    }
+};
+
+const Router = {
+    navigate(page, el) {
+        const outlet = document.getElementById('router-outlet');
+        outlet.innerHTML = `<div style="text-align:center; padding:50px; color:var(--text-muted)">Chargement...</div>`;
+        
+        if(el) {
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        setTimeout(() => {
+            outlet.innerHTML = '';
+            switch(page) {
+                case 'home': Pages.renderHome(outlet); break;
+                case 'favorites': Pages.renderFavorites(outlet); break;
+                case 'messages': Pages.renderMessages(outlet); break;
+                case 'profile': Pages.renderProfile(outlet); break;
+                case 'publish': Pages.renderPublish(outlet); break;
+                case 'dashboard': Pages.renderDashboard(outlet); break;
+            }
+        }, 300);
+    }
+};
+
+const Pages = {
+    renderHome(container) {
+        const grid = document.createElement('div');
+        grid.className = 'listing-grid';
+        const filtered = Store.state.listings.filter(l => 
+            l.price <= Store.state.filters.price && 
+            l.quartier.toLowerCase().includes(Store.state.filters.query.toLowerCase())
+        );
+        filtered.forEach(item => grid.appendChild(this.createCard(item)));
+        container.appendChild(grid);
+    },
+
+    renderFavorites(container) {
+        const favs = Store.state.listings.filter(l => Store.state.favorites.includes(l.id));
+        if(favs.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:100px 20px;"><h3>Aucun favori</h3><p>Vos coups de coeur apparaîtront ici.</p></div>`;
+            return;
+        }
+        const grid = document.createElement('div');
+        grid.className = 'listing-grid';
+        favs.forEach(item => grid.appendChild(this.createCard(item, true)));
+        container.appendChild(grid);
+    },
+
+    createCard(data, isFavPage = false) {
+        const tpl = document.getElementById('tpl-card').content.cloneNode(true);
+        const card = tpl.querySelector('.listing-card');
+        
+        tpl.querySelector('img').src = data.img;
+        tpl.querySelector('.c-title').textContent = data.title;
+        tpl.querySelector('.c-loc span').textContent = `${data.quartier}, ${data.ville}`;
+        tpl.querySelector('.c-price').textContent = data.price.toLocaleString() + " FCFA";
+        tpl.querySelector('.c-rating span').textContent = data.rating;
+        tpl.querySelector('.c-type').textContent = data.type;
+
+        const favBtn = tpl.querySelector('.btn-wishlist');
+        if(Store.state.favorites.includes(data.id)) favBtn.classList.add('active');
+
+        favBtn.onclick = (e) => {
+            e.stopPropagation();
+            const idx = Store.state.favorites.indexOf(data.id);
+            if(idx > -1) {
+                Store.state.favorites.splice(idx, 1);
+                UI.toast("Retiré des favoris");
+                if(isFavPage) {
+                    card.style.opacity = "0";
+                    setTimeout(() => Router.navigate('favorites'), 300);
+                }
+            } else {
+                Store.state.favorites.push(data.id);
+                UI.toast("Ajouté aux favoris !");
+            }
+            localStorage.setItem('map_favs', JSON.stringify(Store.state.favorites));
+            favBtn.classList.toggle('active');
+        };
+
+        tpl.querySelector('.btn-view').onclick = () => this.showDetails(data);
+        return tpl;
+    },
+
+    showDetails(data) {
+        const body = `
+            <img src="${data.img}" style="width:100%; border-radius:15px; margin-bottom:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2>${data.title}</h2>
+                <span style="font-size:20px; font-weight:800; color:var(--primary)">${data.price.toLocaleString()} FCFA</span>
+            </div>
+            <p style="color:var(--text-muted); margin:10px 0;">${data.quartier}, ${data.ville}</p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
+                <button onclick="Pages.startChat('${data.title}')" style="background:var(--primary-light); color:var(--primary); padding:15px; border:none; border-radius:12px; font-weight:800; cursor:pointer;">Message</button>
+                <a href="tel:${data.sellerTel}" style="background:var(--success); color:white; text-align:center; padding:15px; border-radius:12px; text-decoration:none; font-weight:800;">Appeler</a>
+            </div>
+        `;
+        UI.openModal(body);
+    },
+
+    renderProfile(container) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:30px;">
+                <img src="${Store.state.user.avatar}" style="width:80px; height:80px; border-radius:50%; margin-bottom:10px;">
+                <h3>${Store.state.user.name}</h3>
+                <p style="color:var(--text-muted)">${Store.state.user.email}</p>
+            </div>
+            <div style="padding:20px;">
+                <div class="setting-item" onclick="UI.toggleDarkMode()" style="background:var(--surface); padding:15px; border-radius:12px; display:flex; justify-content:space-between; margin-bottom:10px; border:1px solid var(--border); cursor:pointer;">
+                    <span>Mode Nuit</span>
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+                <div style="background:var(--text-main); color:var(--surface); padding:20px; border-radius:15px; margin-top:20px;">
+                    <strong>Mode Agent</strong>
+                    <p style="font-size:12px; opacity:0.8;">Publiez vos annonces ici</p>
+                    <button onclick="Pages.toggleAgent()" style="margin-top:10px; padding:10px; width:100%; border-radius:8px; border:none; background:var(--primary); color:white; font-weight:800; cursor:pointer;">
+                        ${Store.state.user.isAgent ? 'Désactiver' : 'Devenir Agent'}
+                    </button>
+                </div>
+            </div>
+        `;
+    },
+
+    toggleAgent() {
+        Store.state.user.isAgent = !Store.state.user.isAgent;
+        UI.toast(Store.state.user.isAgent ? "Mode Agent Activé !" : "Mode Client activé");
+        this.renderProfile(document.getElementById('router-outlet'));
+    },
+
+    renderMessages(container) {
+        container.innerHTML = `<h2 style="padding:20px;">Messages</h2>`;
+        Store.state.chats.forEach(chat => {
+            const item = document.createElement('div');
+            item.style = "display:flex; gap:15px; padding:15px; border-bottom:1px solid var(--border); cursor:pointer;";
+            item.innerHTML = `
+                <img src="${chat.avatar}" style="width:50px; height:50px; border-radius:50%;">
+                <div style="flex:1">
+                    <div style="display:flex; justify-content:space-between;"><strong>${chat.agent}</strong><small>${chat.time}</small></div>
+                    <p style="font-size:13px; color:var(--text-muted);">${chat.lastMsg}</p>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    },
+
+    startChat(title) {
+        UI.toast("Discussion lancée pour " + title);
+        document.getElementById('modal-overlay').classList.add('modal-hidden');
+        Router.navigate('messages');
+    }
+};
+
+const UI = {
+    toast(msg) {
+        const provider = document.getElementById('toast-provider');
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        provider.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    },
+    openModal(html) {
+        const modal = document.getElementById('modal-overlay');
+        document.getElementById('modal-body').innerHTML = html;
+        modal.classList.remove('modal-hidden');
+    },
+    toggleDarkMode() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('map_dark', isDark);
+    },
+    initTheme() {
+        if(localStorage.getItem('map_dark') === 'true') document.body.classList.add('dark-mode');
+    }
+};
+
+// INITIALISATION
+document.addEventListener('DOMContentLoaded', () => {
+    Store.init();
+    document.getElementById('global-search').oninput = (e) => {
+        Store.state.filters.query = e.target.value;
+        Router.navigate('home');
+    };
+    document.getElementById('filter-price').oninput = (e) => {
+        const val = parseInt(e.target.value);
+        document.getElementById('price-val').textContent = val.toLocaleString() + " FCFA";
+        Store.state.filters.price = val;
+        Router.navigate('home');
+    };
+    document.getElementById('modal-close').onclick = () => document.getElementById('modal-overlay').classList.add('modal-hidden');
+});
