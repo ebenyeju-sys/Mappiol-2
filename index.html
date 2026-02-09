@@ -7,7 +7,6 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,7 +17,6 @@
                 <div class="m-logo">M</div>
                 <div class="m-text">MAPPIOL</div>
             </div>
-
             <div class="search-engine">
                 <div class="search-input-group">
                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -48,25 +46,37 @@
         </div>
     </header>
 
-    <main id="router-outlet"></main>
+    <main id="router-outlet">
+        </main>
 
-    <div class="modal" id="property-modal">
+    <div class="modal" id="app-modal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+            <button class="modal-close" id="close-modal"><i class="fa-solid fa-xmark"></i></button>
             <img src="" class="modal-img" id="m-img">
             <div class="modal-info">
-                <h2 id="m-title"></h2>
-                <p class="c-loc" id="m-loc"></p>
-                <div class="modal-features">
-                    <span><i class="fa-solid fa-bed"></i> 2 Ch</span>
-                    <span><i class="fa-solid fa-bath"></i> 1 Douche</span>
-                    <span><i class="fa-solid fa-shield-halved"></i> Sécurisé</span>
+                <div id="m-view-mode">
+                    <h2 id="m-title"></h2>
+                    <p class="c-loc" id="m-loc"></p>
+                    <div class="modal-features">
+                        <span><i class="fa-solid fa-bed"></i> 2 Ch</span>
+                        <span><i class="fa-solid fa-bath"></i> 1 Douche</span>
+                    </div>
+                    <div class="c-price" id="m-price" style="font-size: 24px; margin: 15px 0;"></div>
+                    <button class="btn-call" onclick="alert('Appel...')"><i class="fa-solid fa-phone"></i> Contacter</button>
                 </div>
-                <p id="m-desc">Magnifique propriété située dans un quartier calme et sécurisé.</p>
-                <div class="c-price" id="m-price"></div>
-                <button class="btn-call" onclick="alert('Contact agent...')">
-                    <i class="fa-solid fa-phone"></i> Contacter l'Agent
-                </button>
+                <div id="m-edit-mode" style="display:none;">
+                    <h2>Publier une annonce</h2>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-top:15px;">
+                        <input type="text" id="new-title" placeholder="Titre de l'annonce">
+                        <input type="number" id="new-price" placeholder="Prix (FCFA)">
+                        <select id="new-type">
+                            <option value="Studio">Studio</option>
+                            <option value="Appartement">Appartement</option>
+                            <option value="Villa">Villa</option>
+                        </select>
+                        <button class="btn-call" id="btn-save-fire">Publier en ligne</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -74,11 +84,29 @@
     <nav class="mobile-nav">
         <button class="nav-link active"><i class="fa-solid fa-compass"></i><span>Explorer</span></button>
         <button class="nav-link"><i class="fa-solid fa-heart"></i><span>Favoris</span></button>
-        <div class="nav-link nav-center"><div class="plus-icon"><i class="fa-solid fa-plus"></i></div></div>
+        <div class="nav-link nav-center" id="btn-add-main"><div class="plus-icon"><i class="fa-solid fa-plus"></i></div></div>
         <button class="nav-link"><i class="fa-solid fa-message"></i><span>Messages</span></button>
         <button class="nav-link"><i class="fa-solid fa-user"></i><span>Profil</span></button>
     </nav>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBfhlCUVHIH5S0xFZgl74srQv0qGKx60Zo",
+            authDomain: "mappiol.firebaseapp.com",
+            projectId: "mappiol",
+            storageBucket: "mappiol.firebasestorage.app",
+            messagingSenderId: "316903605477",
+            appId: "1:316903605477:web:c922f5dd7a37a45567000c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.auth = getAuth(app);
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
