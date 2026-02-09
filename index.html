@@ -8,159 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --primary-light: #dbeafe;
-            --accent: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --bg-main: #f8fafc;
-            --surface: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1);
-            --radius-md: 16px;
-            --radius-lg: 24px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* --- MODE SOMBRE --- */
-        body.dark-mode {
-            --bg-main: #0f172a;
-            --surface: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: var(--bg-main); 
-            color: var(--text-main); 
-            line-height: 1.5;
-            padding-bottom: 90px;
-            transition: background 0.3s ease;
-        }
-
-        /* HEADER */
-        .app-header { 
-            background: var(--surface);
-            opacity: 0.95;
-            backdrop-filter: blur(12px); 
-            position: sticky; 
-            top:0; 
-            z-index:1000; 
-            border-bottom: 1px solid var(--border); 
-        }
-
-        .header-inner { 
-            max-width: 1400px; 
-            margin:0 auto; 
-            height: 80px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 0 20px; 
-            gap: 20px; 
-        }
-
-        .logo-area { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; color: inherit; }
-        .m-logo { 
-            background: var(--primary); color: white; width: 42px; height: 42px; 
-            border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-            font-weight: 800; font-size: 24px; box-shadow: 0 4px 10px rgba(37,99,235,0.3); 
-        }
-        .m-text { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
-
-        .search-engine { flex: 0 1 600px; display: flex; gap: 10px; }
-        .search-input-group { 
-            flex: 1; background: var(--bg-main); border-radius: 50px; padding: 0 20px; 
-            display: flex; align-items: center; border: 2px solid transparent;
-        }
-        .search-input-group input { border: none; background: none; outline: none; padding: 12px; width: 100%; font-size: 15px; color: var(--text-main); }
-
-        .btn-circle { 
-            background: var(--surface); border: 1px solid var(--border); width: 48px; height: 48px; 
-            border-radius: 50%; color: var(--text-main); cursor: pointer; transition: var(--transition);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .btn-circle:hover { background: var(--primary); color: white; }
-
-        /* FILTERS */
-        .filter-drawer {
-            background: var(--surface);
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transition: var(--transition);
-        }
-        .filter-drawer.active { max-height: 500px; opacity: 1; padding: 20px 0; border-bottom: 1px solid var(--border); }
-        .filter-grid { max-width: 1400px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; }
-        .filter-item label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; }
-        
-        select, input[type="range"] { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); }
-
-        /* GRID */
-        #router-outlet { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
-        .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
-
-        /* CARDS */
-        .listing-card { 
-            background: var(--surface); border-radius: var(--radius-md); overflow: hidden; 
-            box-shadow: var(--shadow-sm); transition: var(--transition); border: 1px solid var(--border); 
-            animation: cardAppear 0.5s ease backwards; cursor: pointer;
-        }
-        @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .listing-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
-
-        .card-media { height: 220px; position: relative; overflow: hidden; }
-        .card-media img { width: 100%; height: 100%; object-fit: cover; }
-        .card-badge { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.7); color: white; padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: 700; }
-
-        .card-body { padding: 20px; }
-        .c-price { font-size: 19px; font-weight: 800; color: var(--primary); }
-        .c-title { font-size: 18px; font-weight: 700; margin: 5px 0; }
-        .c-loc { color: var(--text-muted); font-size: 14px; display: flex; align-items: center; gap: 5px; }
-
-        /* MODAL DETAILS */
-        .modal {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.8); z-index: 2000;
-            display: none; align-items: center; justify-content: center; padding: 20px;
-            backdrop-filter: blur(5px);
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: var(--surface); width: 100%; max-width: 600px;
-            border-radius: var(--radius-lg); overflow: hidden; position: relative;
-            animation: modalSlide 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes modalSlide { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-close { position: absolute; top: 15px; right: 15px; background: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; z-index: 10; }
-        .modal-img { width: 100%; height: 250px; object-fit: cover; }
-        .modal-info { padding: 25px; }
-        .modal-features { display: flex; gap: 15px; margin: 20px 0; color: var(--text-muted); font-size: 14px; }
-        .btn-call { background: var(--success); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-
-        /* MOBILE NAV */
-        .mobile-nav { 
-            position: fixed; bottom: 0; width: 100%; height: 75px; background: var(--surface); 
-            display: none; justify-content: space-around; align-items: center; 
-            border-top: 1px solid var(--border); z-index: 1000;
-        }
-        .nav-link { background: none; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; font-family: inherit; cursor: pointer; }
-        .nav-link.active { color: var(--primary); }
-        .nav-center .plus-icon { background: var(--primary); width: 55px; height: 55px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; margin-top: -30px; border: 5px solid var(--bg-main); box-shadow: 0 5px 15px rgba(37,99,235,0.3); }
-
-        @media (max-width: 900px) { .search-input-group { display: none; } .mobile-nav { display: flex; } }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -207,18 +55,16 @@
             <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
             <img src="" class="modal-img" id="m-img">
             <div class="modal-info">
-                <h2 id="m-title">Titre du bien</h2>
-                <p class="c-loc" id="m-loc"><i class="fa-solid fa-location-dot"></i> Localisation</p>
+                <h2 id="m-title"></h2>
+                <p class="c-loc" id="m-loc"></p>
                 <div class="modal-features">
                     <span><i class="fa-solid fa-bed"></i> 2 Ch</span>
                     <span><i class="fa-solid fa-bath"></i> 1 Douche</span>
                     <span><i class="fa-solid fa-shield-halved"></i> Sécurisé</span>
                 </div>
-                <p id="m-desc" style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Magnifique propriété située dans un quartier calme et sécurisé, idéale pour une famille ou jeunes professionnels.</p>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                    <div class="c-price" id="m-price" style="font-size: 24px;">0 FCFA</div>
-                </div>
-                <button class="btn-call" onclick="alert('Appel de l\'agent en cours...')">
+                <p id="m-desc">Magnifique propriété située dans un quartier calme et sécurisé.</p>
+                <div class="c-price" id="m-price"></div>
+                <button class="btn-call" onclick="alert('Contact agent...')">
                     <i class="fa-solid fa-phone"></i> Contacter l'Agent
                 </button>
             </div>
@@ -233,72 +79,6 @@
         <button class="nav-link"><i class="fa-solid fa-user"></i><span>Profil</span></button>
     </nav>
 
-    <script>
-        const MOCK_DATA = [
-            { id: 1, title: "Studio de Luxe", price: 150000, loc: "Bonapriso, Douala", type: "Studio", img: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600" },
-            { id: 2, title: "Appartement Moderne", price: 300000, loc: "Bastos, Yaoundé", type: "Appartement", img: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600" },
-            { id: 3, title: "Villa Panoramique", price: 800000, loc: "Kribi, Littoral", type: "Villa", img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600" },
-            { id: 4, title: "Studio Meublé", price: 120000, loc: "Akwa, Douala", type: "Studio", img: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600" }
-        ];
-
-        const grid = document.getElementById('router-outlet');
-        const themeToggle = document.getElementById('theme-toggle');
-        const modal = document.getElementById('property-modal');
-
-        // RENDU DES CARTES
-        function render(data) {
-            grid.innerHTML = '<div class="listing-grid"></div>';
-            const container = grid.querySelector('.listing-grid');
-            
-            data.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'listing-card';
-                card.innerHTML = `
-                    <div class="card-media">
-                        <img src="${item.img}">
-                        <div class="card-badge">Location</div>
-                    </div>
-                    <div class="card-body">
-                        <div class="c-price">${item.price.toLocaleString()} FCFA</div>
-                        <h3 class="c-title">${item.title}</h3>
-                        <p class="c-loc"><i class="fa-solid fa-location-dot"></i> ${item.loc}</p>
-                    </div>
-                `;
-                card.onclick = () => openModal(item);
-                container.appendChild(card);
-            });
-        }
-
-        // GESTION MODALE
-        function openModal(item) {
-            document.getElementById('m-img').src = item.img;
-            document.getElementById('m-title').textContent = item.title;
-            document.getElementById('m-loc').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${item.loc}`;
-            document.getElementById('m-price').textContent = `${item.price.toLocaleString()} FCFA`;
-            modal.classList.add('active');
-        }
-
-        function closeModal() { modal.classList.remove('active'); }
-
-        // MODE SOMBRE
-        themeToggle.onclick = () => {
-            document.body.classList.toggle('dark-mode');
-            const icon = themeToggle.querySelector('i');
-            icon.classList.toggle('fa-moon');
-            icon.classList.toggle('fa-sun');
-        };
-
-        // FILTRES
-        document.getElementById('filter-toggle').onclick = () => document.getElementById('advanced-filters').classList.toggle('active');
-        
-        document.getElementById('filter-price').oninput = (e) => {
-            document.getElementById('price-val').textContent = parseInt(e.target.value).toLocaleString() + " FCFA";
-            const filtered = MOCK_DATA.filter(i => i.price <= e.target.value);
-            render(filtered);
-        };
-
-        // INIT
-        render(MOCK_DATA);
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
