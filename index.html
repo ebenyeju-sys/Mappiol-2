@@ -1,228 +1,304 @@
-/** * MAPPIOL PRO - CORE ENGINE
- */
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mappiol Pro | Immobilier Premium</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #dbeafe;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-main: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1);
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-const Store = {
-    state: {
-        user: { name: "Samuel Eto'o", email: "samuel@mappiol.cm", isAgent: false, avatar: "https://i.pravatar.cc/150?u=samuel" },
-        listings: [],
-        favorites: JSON.parse(localStorage.getItem('map_favs')) || [],
-        chats: [
-            { id: 1, agent: "Marc Agent", lastMsg: "Le studio est libre !", time: "10:30", avatar: "https://i.pravatar.cc/150?u=1" }
-        ],
-        filters: { price: 1000000, query: '' }
-    },
+        /* --- MODE SOMBRE --- */
+        body.dark-mode {
+            --bg-main: #0f172a;
+            --surface: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
+        }
 
-    init() {
-        this.generateData();
-        UI.initTheme();
-        Router.navigate('home');
-    },
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-    generateData() {
-        const quartiers = ["Akwa", "Bastos", "Bonapriso", "Mendong", "Biyem-Assi", "Makepe"];
-        for(let i=1; i<=12; i++) {
-            this.state.listings.push({
-                id: i,
-                title: (i%2 === 0 ? "Studio VIP " : "Appartement ") + i,
-                price: (Math.floor(Math.random() * 8) + 4) * 10000,
-                quartier: quartiers[i%6],
-                ville: i < 7 ? "Douala" : "Yaoundé",
-                type: i%2 === 0 ? "Studio" : "Appartement",
-                img: `https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&sig=${i}`,
-                rating: (Math.random() * 0.5 + 4.5).toFixed(1),
-                sellerTel: "+237600000000"
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-main); 
+            color: var(--text-main); 
+            line-height: 1.5;
+            padding-bottom: 90px;
+            transition: background 0.3s ease;
+        }
+
+        /* HEADER */
+        .app-header { 
+            background: var(--surface);
+            opacity: 0.95;
+            backdrop-filter: blur(12px); 
+            position: sticky; 
+            top:0; 
+            z-index:1000; 
+            border-bottom: 1px solid var(--border); 
+        }
+
+        .header-inner { 
+            max-width: 1400px; 
+            margin:0 auto; 
+            height: 80px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 0 20px; 
+            gap: 20px; 
+        }
+
+        .logo-area { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; color: inherit; }
+        .m-logo { 
+            background: var(--primary); color: white; width: 42px; height: 42px; 
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+            font-weight: 800; font-size: 24px; box-shadow: 0 4px 10px rgba(37,99,235,0.3); 
+        }
+        .m-text { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+
+        .search-engine { flex: 0 1 600px; display: flex; gap: 10px; }
+        .search-input-group { 
+            flex: 1; background: var(--bg-main); border-radius: 50px; padding: 0 20px; 
+            display: flex; align-items: center; border: 2px solid transparent;
+        }
+        .search-input-group input { border: none; background: none; outline: none; padding: 12px; width: 100%; font-size: 15px; color: var(--text-main); }
+
+        .btn-circle { 
+            background: var(--surface); border: 1px solid var(--border); width: 48px; height: 48px; 
+            border-radius: 50%; color: var(--text-main); cursor: pointer; transition: var(--transition);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-circle:hover { background: var(--primary); color: white; }
+
+        /* FILTERS */
+        .filter-drawer {
+            background: var(--surface);
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: var(--transition);
+        }
+        .filter-drawer.active { max-height: 500px; opacity: 1; padding: 20px 0; border-bottom: 1px solid var(--border); }
+        .filter-grid { max-width: 1400px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; }
+        .filter-item label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; }
+        
+        select, input[type="range"] { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); }
+
+        /* GRID */
+        #router-outlet { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
+
+        /* CARDS */
+        .listing-card { 
+            background: var(--surface); border-radius: var(--radius-md); overflow: hidden; 
+            box-shadow: var(--shadow-sm); transition: var(--transition); border: 1px solid var(--border); 
+            animation: cardAppear 0.5s ease backwards; cursor: pointer;
+        }
+        @keyframes cardAppear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .listing-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+
+        .card-media { height: 220px; position: relative; overflow: hidden; }
+        .card-media img { width: 100%; height: 100%; object-fit: cover; }
+        .card-badge { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.7); color: white; padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: 700; }
+
+        .card-body { padding: 20px; }
+        .c-price { font-size: 19px; font-weight: 800; color: var(--primary); }
+        .c-title { font-size: 18px; font-weight: 700; margin: 5px 0; }
+        .c-loc { color: var(--text-muted); font-size: 14px; display: flex; align-items: center; gap: 5px; }
+
+        /* MODAL DETAILS */
+        .modal {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.8); z-index: 2000;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: var(--surface); width: 100%; max-width: 600px;
+            border-radius: var(--radius-lg); overflow: hidden; position: relative;
+            animation: modalSlide 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalSlide { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-close { position: absolute; top: 15px; right: 15px; background: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; z-index: 10; }
+        .modal-img { width: 100%; height: 250px; object-fit: cover; }
+        .modal-info { padding: 25px; }
+        .modal-features { display: flex; gap: 15px; margin: 20px 0; color: var(--text-muted); font-size: 14px; }
+        .btn-call { background: var(--success); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+
+        /* MOBILE NAV */
+        .mobile-nav { 
+            position: fixed; bottom: 0; width: 100%; height: 75px; background: var(--surface); 
+            display: none; justify-content: space-around; align-items: center; 
+            border-top: 1px solid var(--border); z-index: 1000;
+        }
+        .nav-link { background: none; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; font-family: inherit; cursor: pointer; }
+        .nav-link.active { color: var(--primary); }
+        .nav-center .plus-icon { background: var(--primary); width: 55px; height: 55px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; margin-top: -30px; border: 5px solid var(--bg-main); box-shadow: 0 5px 15px rgba(37,99,235,0.3); }
+
+        @media (max-width: 900px) { .search-input-group { display: none; } .mobile-nav { display: flex; } }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="logo-area">
+                <div class="m-logo">M</div>
+                <div class="m-text">MAPPIOL</div>
+            </div>
+
+            <div class="search-engine">
+                <div class="search-input-group">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="global-search" placeholder="Quartier, ville...">
+                </div>
+                <button class="btn-circle" id="theme-toggle"><i class="fa-solid fa-moon"></i></button>
+                <button class="btn-circle" id="filter-toggle"><i class="fa-solid fa-sliders"></i></button>
+            </div>
+        </div>
+
+        <div id="advanced-filters" class="filter-drawer">
+            <div class="filter-grid">
+                <div class="filter-item">
+                    <label>Budget Max: <span id="price-val">2M FCFA</span></label>
+                    <input type="range" id="filter-price" min="50000" max="2000000" step="50000" value="2000000">
+                </div>
+                <div class="filter-item">
+                    <label>Type de bien</label>
+                    <select id="filter-type">
+                        <option value="all">Tous</option>
+                        <option value="Studio">Studio</option>
+                        <option value="Appartement">Appartement</option>
+                        <option value="Villa">Villa</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="router-outlet"></main>
+
+    <div class="modal" id="property-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+            <img src="" class="modal-img" id="m-img">
+            <div class="modal-info">
+                <h2 id="m-title">Titre du bien</h2>
+                <p class="c-loc" id="m-loc"><i class="fa-solid fa-location-dot"></i> Localisation</p>
+                <div class="modal-features">
+                    <span><i class="fa-solid fa-bed"></i> 2 Ch</span>
+                    <span><i class="fa-solid fa-bath"></i> 1 Douche</span>
+                    <span><i class="fa-solid fa-shield-halved"></i> Sécurisé</span>
+                </div>
+                <p id="m-desc" style="margin-bottom: 20px; color: var(--text-muted); font-size: 14px;">Magnifique propriété située dans un quartier calme et sécurisé, idéale pour une famille ou jeunes professionnels.</p>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div class="c-price" id="m-price" style="font-size: 24px;">0 FCFA</div>
+                </div>
+                <button class="btn-call" onclick="alert('Appel de l\'agent en cours...')">
+                    <i class="fa-solid fa-phone"></i> Contacter l'Agent
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="mobile-nav">
+        <button class="nav-link active"><i class="fa-solid fa-compass"></i><span>Explorer</span></button>
+        <button class="nav-link"><i class="fa-solid fa-heart"></i><span>Favoris</span></button>
+        <div class="nav-link nav-center"><div class="plus-icon"><i class="fa-solid fa-plus"></i></div></div>
+        <button class="nav-link"><i class="fa-solid fa-message"></i><span>Messages</span></button>
+        <button class="nav-link"><i class="fa-solid fa-user"></i><span>Profil</span></button>
+    </nav>
+
+    <script>
+        const MOCK_DATA = [
+            { id: 1, title: "Studio de Luxe", price: 150000, loc: "Bonapriso, Douala", type: "Studio", img: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600" },
+            { id: 2, title: "Appartement Moderne", price: 300000, loc: "Bastos, Yaoundé", type: "Appartement", img: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600" },
+            { id: 3, title: "Villa Panoramique", price: 800000, loc: "Kribi, Littoral", type: "Villa", img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600" },
+            { id: 4, title: "Studio Meublé", price: 120000, loc: "Akwa, Douala", type: "Studio", img: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600" }
+        ];
+
+        const grid = document.getElementById('router-outlet');
+        const themeToggle = document.getElementById('theme-toggle');
+        const modal = document.getElementById('property-modal');
+
+        // RENDU DES CARTES
+        function render(data) {
+            grid.innerHTML = '<div class="listing-grid"></div>';
+            const container = grid.querySelector('.listing-grid');
+            
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'listing-card';
+                card.innerHTML = `
+                    <div class="card-media">
+                        <img src="${item.img}">
+                        <div class="card-badge">Location</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="c-price">${item.price.toLocaleString()} FCFA</div>
+                        <h3 class="c-title">${item.title}</h3>
+                        <p class="c-loc"><i class="fa-solid fa-location-dot"></i> ${item.loc}</p>
+                    </div>
+                `;
+                card.onclick = () => openModal(item);
+                container.appendChild(card);
             });
         }
-    }
-};
 
-const Router = {
-    navigate(page, el) {
-        const outlet = document.getElementById('router-outlet');
-        outlet.innerHTML = `<div style="text-align:center; padding:50px; color:var(--text-muted)">Chargement...</div>`;
-        
-        if(el) {
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
+        // GESTION MODALE
+        function openModal(item) {
+            document.getElementById('m-img').src = item.img;
+            document.getElementById('m-title').textContent = item.title;
+            document.getElementById('m-loc').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${item.loc}`;
+            document.getElementById('m-price').textContent = `${item.price.toLocaleString()} FCFA`;
+            modal.classList.add('active');
         }
 
-        setTimeout(() => {
-            outlet.innerHTML = '';
-            switch(page) {
-                case 'home': Pages.renderHome(outlet); break;
-                case 'favorites': Pages.renderFavorites(outlet); break;
-                case 'messages': Pages.renderMessages(outlet); break;
-                case 'profile': Pages.renderProfile(outlet); break;
-                case 'publish': Pages.renderPublish(outlet); break;
-                case 'dashboard': Pages.renderDashboard(outlet); break;
-            }
-        }, 300);
-    }
-};
+        function closeModal() { modal.classList.remove('active'); }
 
-const Pages = {
-    renderHome(container) {
-        const grid = document.createElement('div');
-        grid.className = 'listing-grid';
-        const filtered = Store.state.listings.filter(l => 
-            l.price <= Store.state.filters.price && 
-            l.quartier.toLowerCase().includes(Store.state.filters.query.toLowerCase())
-        );
-        filtered.forEach(item => grid.appendChild(this.createCard(item)));
-        container.appendChild(grid);
-    },
-
-    renderFavorites(container) {
-        const favs = Store.state.listings.filter(l => Store.state.favorites.includes(l.id));
-        if(favs.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:100px 20px;"><h3>Aucun favori</h3><p>Vos coups de coeur apparaîtront ici.</p></div>`;
-            return;
-        }
-        const grid = document.createElement('div');
-        grid.className = 'listing-grid';
-        favs.forEach(item => grid.appendChild(this.createCard(item, true)));
-        container.appendChild(grid);
-    },
-
-    createCard(data, isFavPage = false) {
-        const tpl = document.getElementById('tpl-card').content.cloneNode(true);
-        const card = tpl.querySelector('.listing-card');
-        
-        tpl.querySelector('img').src = data.img;
-        tpl.querySelector('.c-title').textContent = data.title;
-        tpl.querySelector('.c-loc span').textContent = `${data.quartier}, ${data.ville}`;
-        tpl.querySelector('.c-price').textContent = data.price.toLocaleString() + " FCFA";
-        tpl.querySelector('.c-rating span').textContent = data.rating;
-        tpl.querySelector('.c-type').textContent = data.type;
-
-        const favBtn = tpl.querySelector('.btn-wishlist');
-        if(Store.state.favorites.includes(data.id)) favBtn.classList.add('active');
-
-        favBtn.onclick = (e) => {
-            e.stopPropagation();
-            const idx = Store.state.favorites.indexOf(data.id);
-            if(idx > -1) {
-                Store.state.favorites.splice(idx, 1);
-                UI.toast("Retiré des favoris");
-                if(isFavPage) {
-                    card.style.opacity = "0";
-                    setTimeout(() => Router.navigate('favorites'), 300);
-                }
-            } else {
-                Store.state.favorites.push(data.id);
-                UI.toast("Ajouté aux favoris !");
-            }
-            localStorage.setItem('map_favs', JSON.stringify(Store.state.favorites));
-            favBtn.classList.toggle('active');
+        // MODE SOMBRE
+        themeToggle.onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            const icon = themeToggle.querySelector('i');
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
         };
 
-        tpl.querySelector('.btn-view').onclick = () => this.showDetails(data);
-        return tpl;
-    },
+        // FILTRES
+        document.getElementById('filter-toggle').onclick = () => document.getElementById('advanced-filters').classList.toggle('active');
+        
+        document.getElementById('filter-price').oninput = (e) => {
+            document.getElementById('price-val').textContent = parseInt(e.target.value).toLocaleString() + " FCFA";
+            const filtered = MOCK_DATA.filter(i => i.price <= e.target.value);
+            render(filtered);
+        };
 
-    showDetails(data) {
-        const body = `
-            <img src="${data.img}" style="width:100%; border-radius:15px; margin-bottom:15px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2>${data.title}</h2>
-                <span style="font-size:20px; font-weight:800; color:var(--primary)">${data.price.toLocaleString()} FCFA</span>
-            </div>
-            <p style="color:var(--text-muted); margin:10px 0;">${data.quartier}, ${data.ville}</p>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
-                <button onclick="Pages.startChat('${data.title}')" style="background:var(--primary-light); color:var(--primary); padding:15px; border:none; border-radius:12px; font-weight:800; cursor:pointer;">Message</button>
-                <a href="tel:${data.sellerTel}" style="background:var(--success); color:white; text-align:center; padding:15px; border-radius:12px; text-decoration:none; font-weight:800;">Appeler</a>
-            </div>
-        `;
-        UI.openModal(body);
-    },
-
-    renderProfile(container) {
-        container.innerHTML = `
-            <div style="text-align:center; padding:30px;">
-                <img src="${Store.state.user.avatar}" style="width:80px; height:80px; border-radius:50%; margin-bottom:10px;">
-                <h3>${Store.state.user.name}</h3>
-                <p style="color:var(--text-muted)">${Store.state.user.email}</p>
-            </div>
-            <div style="padding:20px;">
-                <div class="setting-item" onclick="UI.toggleDarkMode()" style="background:var(--surface); padding:15px; border-radius:12px; display:flex; justify-content:space-between; margin-bottom:10px; border:1px solid var(--border); cursor:pointer;">
-                    <span>Mode Nuit</span>
-                    <i class="fa-solid fa-moon"></i>
-                </div>
-                <div style="background:var(--text-main); color:var(--surface); padding:20px; border-radius:15px; margin-top:20px;">
-                    <strong>Mode Agent</strong>
-                    <p style="font-size:12px; opacity:0.8;">Publiez vos annonces ici</p>
-                    <button onclick="Pages.toggleAgent()" style="margin-top:10px; padding:10px; width:100%; border-radius:8px; border:none; background:var(--primary); color:white; font-weight:800; cursor:pointer;">
-                        ${Store.state.user.isAgent ? 'Désactiver' : 'Devenir Agent'}
-                    </button>
-                </div>
-            </div>
-        `;
-    },
-
-    toggleAgent() {
-        Store.state.user.isAgent = !Store.state.user.isAgent;
-        UI.toast(Store.state.user.isAgent ? "Mode Agent Activé !" : "Mode Client activé");
-        this.renderProfile(document.getElementById('router-outlet'));
-    },
-
-    renderMessages(container) {
-        container.innerHTML = `<h2 style="padding:20px;">Messages</h2>`;
-        Store.state.chats.forEach(chat => {
-            const item = document.createElement('div');
-            item.style = "display:flex; gap:15px; padding:15px; border-bottom:1px solid var(--border); cursor:pointer;";
-            item.innerHTML = `
-                <img src="${chat.avatar}" style="width:50px; height:50px; border-radius:50%;">
-                <div style="flex:1">
-                    <div style="display:flex; justify-content:space-between;"><strong>${chat.agent}</strong><small>${chat.time}</small></div>
-                    <p style="font-size:13px; color:var(--text-muted);">${chat.lastMsg}</p>
-                </div>
-            `;
-            container.appendChild(item);
-        });
-    },
-
-    startChat(title) {
-        UI.toast("Discussion lancée pour " + title);
-        document.getElementById('modal-overlay').classList.add('modal-hidden');
-        Router.navigate('messages');
-    }
-};
-
-const UI = {
-    toast(msg) {
-        const provider = document.getElementById('toast-provider');
-        const t = document.createElement('div');
-        t.className = 'toast';
-        t.textContent = msg;
-        provider.appendChild(t);
-        setTimeout(() => t.remove(), 3000);
-    },
-    openModal(html) {
-        const modal = document.getElementById('modal-overlay');
-        document.getElementById('modal-body').innerHTML = html;
-        modal.classList.remove('modal-hidden');
-    },
-    toggleDarkMode() {
-        const isDark = document.body.classList.toggle('dark-mode');
-        localStorage.setItem('map_dark', isDark);
-    },
-    initTheme() {
-        if(localStorage.getItem('map_dark') === 'true') document.body.classList.add('dark-mode');
-    }
-};
-
-// INITIALISATION
-document.addEventListener('DOMContentLoaded', () => {
-    Store.init();
-    document.getElementById('global-search').oninput = (e) => {
-        Store.state.filters.query = e.target.value;
-        Router.navigate('home');
-    };
-    document.getElementById('filter-price').oninput = (e) => {
-        const val = parseInt(e.target.value);
-        document.getElementById('price-val').textContent = val.toLocaleString() + " FCFA";
-        Store.state.filters.price = val;
-        Router.navigate('home');
-    };
-    document.getElementById('modal-close').onclick = () => document.getElementById('modal-overlay').classList.add('modal-hidden');
-});
+        // INIT
+        render(MOCK_DATA);
+    </script>
+</body>
+</html>

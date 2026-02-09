@@ -1,295 +1,71 @@
-/**
- * MAPPIOL ULTIMATE CORE
- * Moteur de gestion immobilière haute performance
- */
+:root {
+    --primary: #2563eb;
+    --primary-light: #eff6ff;
+    --accent: #f59e0b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --bg-main: #f8fafc;
+    --surface: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+}
 
-// --- 1. CONFIGURATION ET DONNÉES GÉOGRAPHIQUES ---
-const GEO_ZONES = {
-    "Douala": {
-        "Zone A (Centre)": ["Akwa", "Bali", "Bonapriso", "Bépanda"],
-        "Zone B (Nord)": ["Bonamoussadi", "Makepe", "Kotto", "Logpom", "Lendi"],
-        "Zone C (Sud/Est)": ["Village", "Ndokoti", "Nyalla", "Yassa"]
-    },
-    "Yaoundé": {
-        "Elite": ["Bastos", "Golf", "Minkoamengos"],
-        "Residentiel": ["Biyem-Assi", "Mendong", "Simbock", "Etoudi"]
-    }
-};
+/* --- DARK MODE OVERRIDE --- */
+body.dark-mode {
+    --bg-main: #0f172a;
+    --surface: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: #334155;
+}
 
-// --- 2. STORE (GESTION D'ÉTAT CENTRALISÉE) ---
-const Store = {
-    state: {
-        user: JSON.parse(localStorage.getItem('map_user')) || null,
-        listings: JSON.parse(localStorage.getItem('map_db')) || [],
-        favorites: JSON.parse(localStorage.getItem('map_favs')) || [],
-        filters: { price: 2000000, type: 'all', status: 'Location', query: '' }
-    },
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-main); color: var(--text-main); padding-bottom: 90px; transition: background 0.3s; }
 
-    init() {
-        // Génération de données de test si vide
-        if (this.state.listings.length === 0) {
-            this.generateMockData();
-        }
-        this.sync();
-    },
+/* HEADER & FILTERS */
+.app-header { background: var(--surface); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); padding: 15px 20px; }
+.header-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 20px; }
+.logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text-main); font-weight: 800; font-size: 1.2rem; }
+.m-box { background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.search-bar { flex: 1; background: var(--bg-main); border-radius: 50px; padding: 0 15px; display: flex; align-items: center; border: 1px solid var(--border); }
+.search-bar input { border: none; background: none; outline: none; padding: 10px; width: 100%; color: var(--text-main); }
+.filter-bar { max-width: 1400px; margin: 10px auto; padding: 0 20px; display: flex; align-items: center; gap: 15px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
 
-    sync() {
-        localStorage.setItem('map_db', JSON.stringify(this.state.listings));
-        localStorage.setItem('map_user', JSON.stringify(this.state.user));
-        localStorage.setItem('map_favs', JSON.stringify(this.state.favorites));
-    },
+/* GRID & CARDS */
+.listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+.listing-card { background: var(--surface); border-radius: var(--radius-md); border: 1px solid var(--border); overflow: hidden; transition: 0.3s; position: relative; }
+.listing-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: var(--primary); }
+.card-media { height: 180px; position: relative; }
+.card-media img { width: 100%; height: 100%; object-fit: cover; }
+.card-badge { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; }
+.btn-wishlist { position: absolute; top: 10px; right: 10px; width: 35px; height: 35px; background: white; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.btn-wishlist.active { color: var(--danger); background: #fee2e2; }
 
-    generateMockData() {
-        const types = ["Chambre", "Studio", "Appartement", "Boutique"];
-        const quartiers = ["Akwa", "Bastos", "Bonamoussadi", "Makepe"];
-        for(let i=1; i<=12; i++) {
-            this.state.listings.push({
-                id: i,
-                title: `${types[i%4]} moderne quartier ${quartiers[i%4]}`,
-                price: (Math.floor(Math.random() * 20) + 5) * 10000,
-                quartier: quartiers[i%4],
-                ville: i < 7 ? "Douala" : "Yaoundé",
-                type: types[i%4],
-                status: i % 3 === 0 ? "Vente" : "Location",
-                img: `https://images.unsplash.com/photo-15${60+i}518883-ce09059eeffa?w=600`,
-                seller: "Mappiol Agent",
-                sellerTel: "+237 600 00 00 00",
-                rating: (Math.random() * 2 + 3).toFixed(1),
-                reviews: [],
-                createdAt: new Date().toISOString()
-            });
-        }
-    }
-};
+.card-body { padding: 15px; }
+.card-meta { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--primary); margin-bottom: 5px; }
+.c-title { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+.c-loc { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.card-price-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; }
+.c-price { font-size: 16px; font-weight: 800; color: var(--text-main); }
+.btn-view { padding: 8px 15px; border-radius: 8px; border: 1px solid var(--primary); background: transparent; color: var(--primary); font-weight: 700; cursor: pointer; }
 
-// --- 3. ENGINE DE RECHERCHE ET PROXIMITÉ ---
-const SearchEngine = {
-    find(query, filters) {
-        const q = query.toLowerCase().trim();
-        
-        // Filtrage de base
-        let results = Store.state.listings.filter(p => {
-            const matchPrice = p.price <= filters.price;
-            const matchType = filters.type === 'all' || p.type === filters.type;
-            const matchStatus = p.status === filters.status;
-            return matchPrice && matchType && matchStatus;
-        });
+/* MODAL & CHAT */
+#modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; transition: 0.3s; }
+#modal-overlay.modal-hidden { opacity: 0; pointer-events: none; }
+.modal-content { background: var(--surface); width: 100%; max-width: 550px; border-radius: var(--radius-lg); position: relative; padding: 25px; max-height: 90vh; overflow-y: auto; }
+#modal-close { position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--bg-main); color: var(--text-main); cursor: pointer; }
 
-        if (!q) return { exact: results, nearby: [] };
+/* NAV MOBILE */
+.mobile-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: var(--surface); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border); }
+.nav-link { background: none; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+.nav-link.active { color: var(--primary); }
+.nav-link i { font-size: 20px; margin-bottom: 4px; }
 
-        // Séparation Matchs Exacts / Proximité
-        const exact = results.filter(p => 
-            p.quartier.toLowerCase().includes(q) || p.ville.toLowerCase().includes(q)
-        );
+/* TOAST */
+#toast-provider { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 3000; pointer-events: none; }
+.toast { background: #0f172a; color: white; padding: 12px 25px; border-radius: 50px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 20px rgba(0,0,0,0.3); animation: slideUp 0.3s forwards; margin-bottom: 10px; }
 
-        let nearby = [];
-        const zoneInfo = this.getZoneByQuartier(q);
-        if (zoneInfo) {
-            nearby = results.filter(p => 
-                zoneInfo.neighbors.includes(p.quartier) && !exact.includes(p)
-            );
-        }
-
-        return { exact, nearby };
-    },
-
-    getZoneByQuartier(name) {
-        for (let ville in GEO_ZONES) {
-            for (let zone in GEO_ZONES[ville]) {
-                const list = GEO_ZONES[ville][zone];
-                if (list.some(q => q.toLowerCase().includes(name))) {
-                    return { name: zone, neighbors: list };
-                }
-            }
-        }
-        return null;
-    }
-};
-
-// --- 4. ROUTER ET NAVIGATION ---
-const Router = {
-    navigate(page, triggerEl = null) {
-        const outlet = document.getElementById('router-outlet');
-        outlet.innerHTML = `<div class="loader-skeleton">Chargement...</div>`;
-        
-        // UI Navigation feedback
-        if (triggerEl) {
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            triggerEl.classList.add('active');
-        }
-
-        setTimeout(() => {
-            outlet.innerHTML = '';
-            switch(page) {
-                case 'home': Pages.renderHome(outlet); break;
-                case 'publish': Pages.renderPublish(outlet); break;
-                case 'profile': Pages.renderProfile(outlet); break;
-                case 'favorites': Pages.renderFavorites(outlet); break;
-                default: Pages.renderHome(outlet);
-            }
-        }, 300);
-    }
-};
-
-// --- 5. PAGES ET COMPOSANTS UI ---
-const Pages = {
-    renderHome(container) {
-        const { exact, nearby } = SearchEngine.find(Store.state.filters.query, Store.state.filters);
-        
-        const section = (title, data, isNearby = false) => {
-            if (data.length === 0) return '';
-            const grid = document.createElement('div');
-            grid.className = 'listing-grid';
-            data.forEach(item => grid.appendChild(this.createCard(item)));
-            
-            const header = `<h2 class="section-title" style="margin: 30px 0 15px; display:flex; align-items:center; gap:10px;">
-                ${isNearby ? '<i class="fa-solid fa-map-location-dot" style="color:var(--text-muted)"></i>' : ''}
-                ${title}
-            </h2>`;
-            container.innerHTML += header;
-            container.appendChild(grid);
-        };
-
-        section(Store.state.filters.query ? `Résultats pour "${Store.state.filters.query}"` : "Annonces à la une", exact);
-        section("Logements à proximité immédiate", nearby, true);
-        
-        if (exact.length === 0 && nearby.length === 0) {
-            container.innerHTML = `<div class="empty-state" style="text-align:center; padding:100px 0;">
-                <i class="fa-solid fa-house-circle-exclamation" style="font-size:60px; color:var(--text-muted); margin-bottom:20px;"></i>
-                <h3>Aucun résultat trouvé</h3>
-                <p>Essayez de modifier vos filtres ou la zone de recherche.</p>
-            </div>`;
-        }
-    },
-
-    createCard(data) {
-        const tpl = document.getElementById('tpl-card');
-        const clone = tpl.content.cloneNode(true);
-        const card = clone.querySelector('.listing-card');
-
-        clone.querySelector('img').src = data.img;
-        clone.querySelector('.card-badge').textContent = `À ${data.status}`;
-        clone.querySelector('.c-type').textContent = data.type;
-        clone.querySelector('.c-title').textContent = data.title;
-        clone.querySelector('.c-loc span').textContent = `${data.quartier}, ${data.ville}`;
-        clone.querySelector('.c-price').textContent = `${data.price.toLocaleString()} FCFA`;
-        clone.querySelector('.c-rating span').textContent = data.rating;
-
-        clone.querySelector('.btn-view').onclick = () => this.showDetails(data);
-        
-        const favBtn = clone.querySelector('.btn-wishlist');
-        if (Store.state.favorites.includes(data.id)) favBtn.classList.add('active');
-        favBtn.onclick = (e) => {
-            e.stopPropagation();
-            UI.toggleFavorite(data.id, favBtn);
-        };
-
-        return clone;
-    },
-
-    showDetails(data) {
-        const body = `
-            <div class="detail-hero">
-                <img src="${data.img}" style="width:100%; height:300px; object-fit:cover; border-radius:15px; margin-bottom:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:start;">
-                    <div>
-                        <span class="badge" style="background:var(--primary-light); color:var(--primary); padding:5px 12px; border-radius:20px; font-weight:700;">${data.type}</span>
-                        <h1 style="margin-top:10px;">${data.title}</h1>
-                    </div>
-                    <div style="text-align:right">
-                        <div style="font-size:28px; font-weight:800;">${data.price.toLocaleString()} FCFA</div>
-                        <div style="color:var(--text-muted)">${data.status === 'Location' ? '/ mois' : 'Prix total'}</div>
-                    </div>
-                </div>
-                <div style="margin:20px 0; display:flex; gap:20px; color:var(--text-muted);">
-                    <span><i class="fa-solid fa-map-location"></i> ${data.quartier}</span>
-                    <span><i class="fa-solid fa-star" style="color:var(--accent)"></i> ${data.rating} Avis</span>
-                </div>
-                <p style="line-height:1.7; color:var(--text-main); margin-bottom:30px;">
-                    Magnifique ${data.type.toLowerCase()} situé en plein coeur de ${data.quartier}. 
-                    Le bien bénéficie d'une sécurité H24, d'un forage et d'un accès facile aux transports.
-                </p>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-                    <a href="tel:${data.sellerTel}" class="btn-primary" style="background:var(--primary); color:white; text-align:center; padding:15px; border-radius:12px; text-decoration:none; font-weight:700;">Appeler l'agent</a>
-                    <button class="btn-secondary" style="border:1px solid var(--border); padding:15px; border-radius:12px; font-weight:700;" onclick="UI.toast('Lien copié !')">Partager</button>
-                </div>
-            </div>
-        `;
-        UI.openModal(body);
-    },
-
-    renderPublish(container) {
-        if (!Store.state.user) {
-            container.innerHTML = `<div class="auth-required">
-                <h2>Connectez-vous pour publier</h2>
-                <button onclick="UI.showLogin()" class="btn-primary">S'identifier</button>
-            </div>`;
-            return;
-        }
-        // Logique formulaire de publication...
-        container.innerHTML = `<h2>Déposer une annonce</h2><p>Formulaire complexe ici...</p>`;
-    }
-};
-
-// --- 6. UTILITAIRES UI (TOASTS, MODALES, FILTRES) ---
-const UI = {
-    toast(msg, type = 'info') {
-        const container = document.getElementById('toast-provider');
-        const t = document.createElement('div');
-        t.className = 'toast';
-        t.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${msg}`;
-        container.appendChild(t);
-        setTimeout(() => t.remove(), 3500);
-    },
-
-    openModal(html) {
-        const modal = document.getElementById('modal-overlay');
-        document.getElementById('modal-body').innerHTML = html;
-        modal.classList.remove('modal-hidden');
-    },
-
-    toggleFilters() {
-        const drawer = document.getElementById('advanced-filters');
-        drawer.classList.toggle('hidden');
-    },
-
-    toggleFavorite(id, btn) {
-        const index = Store.state.favorites.indexOf(id);
-        if (index > -1) {
-            Store.state.favorites.splice(index, 1);
-            btn.classList.remove('active');
-            btn.innerHTML = '<i class="fa-regular fa-heart"></i>';
-        } else {
-            Store.state.favorites.push(id);
-            btn.classList.add('active');
-            btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
-            this.toast("Ajouté aux favoris !");
-        }
-        Store.sync();
-    }
-};
-
-// --- 7. INITIALISATION ET EVENTS ---
-document.addEventListener('DOMContentLoaded', () => {
-    Store.init();
-    Router.navigate('home');
-
-    // Moteur de recherche temps réel
-    document.getElementById('global-search').oninput = (e) => {
-        Store.state.filters.query = e.target.value;
-        Router.navigate('home');
-    };
-
-    // Gestion du prix max
-    document.getElementById('filter-price').oninput = (e) => {
-        const val = parseInt(e.target.value);
-        document.getElementById('price-val').textContent = `${val.toLocaleString()} FCFA`;
-        Store.state.filters.price = val;
-        Router.navigate('home');
-    };
-
-    // Fermeture modale
-    document.getElementById('modal-close').onclick = () => {
-        document.getElementById('modal-overlay').classList.add('modal-hidden');
-    };
-});
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
