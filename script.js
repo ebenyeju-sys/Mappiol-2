@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, doc, getDoc, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBfhlCUVHIH5S0xFZgl74srQv0qGKx60Zo",
@@ -15,42 +15,31 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// --- UI ELEMENTS ---
 const authModal = document.getElementById('auth-modal');
 const addModal = document.getElementById('add-modal');
-let userCoords = null;
 
-// Fermeture simple
-document.querySelectorAll('.close').forEach(btn => {
-    btn.onclick = () => {
-        authModal.classList.remove('active');
-        addModal.classList.remove('active');
-    };
-});
+// --- UTILITAIRES ---
+const closeAll = () => { authModal.classList.remove('active'); addModal.classList.remove('active'); };
+document.querySelectorAll('.close').forEach(btn => btn.onclick = closeAll);
 
 document.getElementById('nav-profile').onclick = () => authModal.classList.add('active');
-document.getElementById('nav-add').onclick = () => {
-    if(!auth.currentUser) return alert("Connectez-vous pour publier !");
-    addModal.classList.add('active');
-};
+document.getElementById('nav-add').onclick = () => auth.currentUser ? addModal.classList.add('active') : alert("Connectez-vous !");
 
-// --- AUTH ---
+// --- AUTHENTIFICATION ---
 document.getElementById('btn-login').onclick = async () => {
     const email = document.getElementById('auth-email').value;
     const pass = document.getElementById('auth-pass').value;
     try {
         await signInWithEmailAndPassword(auth, email, pass);
-        authModal.classList.remove('active');
+        closeAll();
     } catch (e) {
-        try {
-            await createUserWithEmailAndPassword(auth, email, pass);
-        } catch (err) { alert("Erreur : " + err.message); }
+        try { await createUserWithEmailAndPassword(auth, email, pass); alert("Compte créé !"); } 
+        catch (err) { alert(err.message); }
     }
 };
+document.getElementById('btn-logout').onclick = () => { signOut(auth); location.reload(); };
 
-document.getElementById('btn-logout').onclick = () => signOut(auth);
-
-// --- PROFIL ---
+// --- GESTION DU PROFIL (MODIFICATION) ---
 async function checkUserProfile(user) {
     const userDoc = await getDoc(doc(db, "users", user.uid));
     const setup = document.getElementById('profile-setup');
@@ -60,11 +49,20 @@ async function checkUserProfile(user) {
         setup.style.display = 'none'; view.style.display = 'block';
         document.getElementById('display-profile-name').innerText = d.name;
         document.getElementById('display-profile-phone').innerText = d.phone;
-        document.getElementById('display-profile-pic').src = d.photo || '';
+        document.getElementById('display-profile-pic').src = d.photo || 'https://via.placeholder.com/100';
+        // Pré-remplir les champs pour modification facile
+        document.getElementById('profile-name').value = d.name;
+        document.getElementById('profile-phone').value = d.phone;
     } else {
         setup.style.display = 'block'; view.style.display = 'none';
     }
 }
+
+// Bouton pour ré-afficher le formulaire de modification
+window.editProfile = () => {
+    document.getElementById('profile-setup').style.display = 'block';
+    document.getElementById('profile-view').style.display = 'none';
+};
 
 document.getElementById('btn-save-profile').onclick = async () => {
     const user = auth.currentUser;
@@ -72,23 +70,28 @@ document.getElementById('btn-save-profile').onclick = async () => {
     const phone = document.getElementById('profile-phone').value;
     const file = document.getElementById('profile-pic-input').files[0];
     
-    let photoUrl = "";
+    if(!name || !phone) return alert("Nom et Tel requis");
+    let photoUrl = document.getElementById('display-profile-pic').src;
+
     if(file) {
         const fd = new FormData(); fd.append("image", file);
         const res = await fetch("https://api.imgbb.com/1/upload?key=6df25977a41981a34341908b9814a09a", { method: "POST", body: fd });
         const json = await res.json();
         photoUrl = json.data.url;
     }
-    await setDoc(doc(db, "users", user.uid), { name, phone, photo: photoUrl });
+    
+    await setDoc(doc(db, "users", user.uid), { name, phone, photo: photoUrl }, { merge: true });
+    alert("Profil mis à jour !");
     checkUserProfile(user);
 };
 
-// --- PUBLICATION (CORRECTION ERREUR URL) ---
-document.getElementById('get-location').onclick = () => {
-    navigator.geolocation.getCurrentPosition(pos => {
-        userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        document.getElementById('new-loc').value = "📍 Position capturée";
-    });
+// --- GESTION DES ANNONCES (SUPPRESSION) ---
+window.deleteAd = async (adId) => {
+    if(confirm("Voulez-vous vraiment supprimer cette annonce ?")) {
+        await deleteDoc(doc(db, "properties", adId));
+        alert("Annonce supprimée !");
+        load();
+    }
 };
 
 document.getElementById('save-btn').onclick = async () => {
@@ -96,37 +99,32 @@ document.getElementById('save-btn').onclick = async () => {
     const file = document.getElementById('new-img').files[0];
     const title = document.getElementById('new-title').value;
     const price = document.getElementById('new-price').value;
-    const loc = document.getElementById('new-loc').value;
 
-    if(!file || !title || !price) return alert("Photo, titre et prix requis !");
+    if(!file || !title || !price) return alert("Remplissez tout !");
 
     const btn = document.getElementById('save-btn');
-    btn.innerText = "Téléchargement..."; btn.disabled = true;
+    btn.innerText = "Publication..."; btn.disabled = true;
 
     try {
         const fd = new FormData(); fd.append("image", file);
         const res = await fetch("https://api.imgbb.com/1/upload?key=6df25977a41981a34341908b9814a09a", { method: "POST", body: fd });
         const json = await res.json();
-
-        // Vérification si ImgBB a bien répondu
-        if(!json.success) throw new Error("Erreur ImgBB : " + json.error.message);
-        
         const imgUrl = json.data.url;
+
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        const userData = userDoc.data() || { name: "Anonyme", phone: "" };
+        const userData = userDoc.data();
 
         await addDoc(collection(db, "properties"), {
-            title, price: parseInt(price), loc, img: imgUrl,
+            title, price: parseInt(price), 
+            loc: document.getElementById('new-loc').value, 
+            img: imgUrl,
+            ownerId: user.uid, // Très important pour savoir qui peut supprimer
             ownerPhone: userData.phone,
             ownerName: userData.name,
-            coords: userCoords,
             createdAt: new Date()
         });
         location.reload();
-    } catch (e) {
-        alert("Erreur publication : " + e.message);
-        btn.disabled = false; btn.innerText = "Réessayer";
-    }
+    } catch (e) { alert(e.message); btn.disabled = false; }
 };
 
 // --- CHARGEMENT ---
@@ -136,16 +134,23 @@ async function load() {
     const q = query(collection(db, "properties"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
     let html = '<div class="listing-grid">';
+    
     snap.forEach(res => {
         const d = res.data();
+        const id = res.id;
+        const isOwner = auth.currentUser && auth.currentUser.uid === d.ownerId;
+
         html += `
             <div class="card">
                 <img src="${d.img}">
                 <div class="card-info">
-                    <span class="price-tag">${d.price.toLocaleString()} FCFA</span>
+                    <span class="price-tag">${d.price} FCFA</span>
                     <h3>${d.title}</h3>
                     <p>${d.loc}</p>
-                    <button class="btn" style="background:#25d366" onclick="window.open('https://wa.me/${d.ownerPhone}')">WhatsApp</button>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn" style="background:#25d366; flex:3;" onclick="window.open('https://wa.me/${d.ownerPhone}')">WhatsApp</button>
+                        ${isOwner ? `<button class="btn" style="background:#ef4444; flex:1;" onclick="deleteAd('${id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </div>
                 </div>
             </div>`;
     });
@@ -161,6 +166,5 @@ onAuthStateChanged(auth, user => {
         document.getElementById('auth-logged-in').style.display='none';
         document.getElementById('auth-logged-out').style.display='block';
     }
+    load();
 });
-
-load();
