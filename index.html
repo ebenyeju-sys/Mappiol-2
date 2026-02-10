@@ -3,173 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mappiol | Immobilier & Visites</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>Mappiol</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <section id="welcome-screen" class="full-screen active">
-        <div class="hero-content">
-            <div class="brand">
-                <span class="logo-dot"></span>
-                <h1 class="brand-name">Mappiol</h1>
+    <section id="landing-screen" class="screen active-screen">
+        <div class="landing-center">
+            <div class="brand-logo-large">
+                Mappi<span class="geo-pin-wrapper"><i class="fa-solid fa-location-dot"></i></span>l
             </div>
-            <div class="hero-text">
-                <h2>L'immobilier,<br>en toute confiance.</h2>
-                <p>Louez un bien ou rentabilisez vos visites en quelques clics.</p>
-            </div>
-            <div class="entry-options">
-                <button class="btn-primary-large" id="start-visitor">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <span>Je cherche un logement</span>
+            
+            <div class="action-buttons-container">
+                <button class="btn-landing-primary" id="btn-enter-visitor">
+                    <div class="btn-content">
+                        <span>Explorer</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
                 </button>
-                <div class="divider"><span>OU</span></div>
-                <button class="btn-outline-large" id="start-owner">
-                    <i class="fa-solid fa-house-user"></i>
-                    <span>Je suis propriétaire</span>
+                
+                <button class="btn-landing-secondary" id="btn-enter-owner">
+                    Espace Propriétaire
                 </button>
             </div>
         </div>
-        <footer class="welcome-footer">
-            <p>&copy; 2026 Mappiol. Tous droits réservés.</p>
+        
+        <footer class="landing-footer">
+            <p>&copy; 2026 Mappiol. L'immobilier simplifié.</p>
         </footer>
     </section>
 
-    <section id="visitor-view" class="app-section">
-        <header class="search-header">
-            <div class="search-top-bar">
-                <button class="btn-icon-back" id="back-to-welcome">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </button>
-                <div class="search-title">Explorer les biens</div>
-            </div>
-            <div class="search-inputs-container">
-                <div class="input-field">
-                    <i class="fa-solid fa-city"></i>
-                    <input type="text" id="search-city" placeholder="Ville (ex: Douala)">
-                </div>
-                <div class="input-field">
-                    <i class="fa-solid fa-map-location-dot"></i>
-                    <input type="text" id="search-district" placeholder="Quartier (ex: Akwa)">
-                </div>
-                <button class="btn-apply-search"><i class="fa-solid fa-magnifying-glass"></i></button>
-            </div>
-            <div class="category-filter-bar">
-                <button class="chip active">Tous</button>
-                <button class="chip">Studios</button>
-                <button class="chip">Appartements</button>
-            </div>
-        </header>
+    <section id="visitor-screen" class="screen">
+        <header class="app-header">
+            <button class="icon-btn" id="back-visitor"><i class="fa-solid fa-chevron-left"></i></button>
+            <h2 class="header-title">Explorer</h2>
+            <div class="placeholder-spacer"></div> </header>
 
-        <div id="feed-container" class="listings-grid">
-            <div class="empty-state-msg">
-                <i class="fa-solid fa-house-chimney"></i>
-                <p>Entrez une ville et un quartier pour commencer.</p>
+        <div class="search-sticky-container">
+            <div class="search-bar-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" placeholder="Ville, Quartier...">
+            </div>
+            
+            <div class="filters-scroll">
+                <button class="filter-chip active" data-type="all">Tout</button>
+                <button class="filter-chip" data-type="Studio">Studio</button>
+                <button class="filter-chip" data-type="Appartement">Appart</button>
+                <button class="filter-chip" data-type="Villa">Villa</button>
+                <button class="filter-chip" data-type="Chambre">Chambre</button>
+            </div>
+        </div>
+
+        <div id="visitor-feed" class="feed-grid">
+            <div class="empty-state">
+                <i class="fa-regular fa-map"></i>
+                <p>Cherchez une zone pour voir les biens.</p>
             </div>
         </div>
     </section>
 
-    <section id="owner-auth-view" class="app-section">
-        <header class="auth-header">
-            <button class="btn-icon-back" id="back-from-auth">
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
-        </header>
-        <div class="auth-container">
-            <div class="auth-welcome">
-                <h2>Rejoignez Mappiol</h2>
-                <p>Connectez-vous pour gérer vos revenus.</p>
+    <section id="auth-screen" class="screen">
+        <button class="icon-btn absolute-top-left" id="back-auth"><i class="fa-solid fa-xmark"></i></button>
+
+        <div class="auth-content-centered">
+            <div class="auth-header-text">
+                <h2>Bienvenue</h2>
+                <p>Connectez-vous pour gérer vos biens.</p>
             </div>
+
             <form id="auth-form" class="clean-form">
-                <div class="form-group-aere">
-                    <label>Email</label>
-                    <input type="email" id="auth-email" placeholder="exemple@mail.com">
+                <div class="input-group">
+                    <input type="email" id="auth-email" placeholder="Email" required autocomplete="email">
+                    <span class="input-icon"><i class="fa-regular fa-envelope"></i></span>
                 </div>
-                <div class="form-group-aere">
-                    <label>Mot de passe</label>
-                    <input type="password" id="auth-pass" placeholder="••••••••">
+                
+                <div class="input-group">
+                    <input type="password" id="auth-pass" placeholder="Mot de passe" required>
+                    <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
                 </div>
-                <div class="auth-actions">
-                    <button type="submit" class="btn-primary-full" id="btn-login">Se connecter</button>
-                    <button type="button" class="btn-text-only" id="btn-switch-signup">Créer un compte</button>
+
+                <div class="auth-options">
+                    <a href="#" class="forgot-link">Mot de passe oublié ?</a>
                 </div>
+
+                <button type="submit" class="btn-primary-full" id="btn-auth-action">
+                    Se connecter
+                </button>
             </form>
+
+            <div class="auth-toggle">
+                <p>Pas encore de compte ? <span id="btn-toggle-signup">Créer un compte</span></p>
+            </div>
         </div>
     </section>
 
-    <section id="owner-dashboard" class="app-section">
+    <section id="dashboard-screen" class="screen">
         <header class="dashboard-header">
-            <div class="user-profile-summary">
-                <div class="avatar-circle">JD</div>
-                <div class="user-welcome"><span>Bienvenue,</span> <strong>Jean Dupont</strong></div>
+            <div class="user-profile">
+                <div class="avatar-placeholder">P</div>
+                <div class="user-text">
+                    <span class="greeting">Bonjour,</span>
+                    <strong class="username" id="dashboard-username">Propriétaire</strong>
+                </div>
             </div>
-            <button class="btn-icon-logout"><i class="fa-solid fa-power-off"></i></button>
+            <button class="icon-btn-danger" id="btn-logout"><i class="fa-solid fa-power-off"></i></button>
         </header>
 
-        <div class="wallet-card-premium">
-            <div class="wallet-label">Gains des visites</div>
-            <div class="wallet-balance"><span id="total-balance">0</span> <small>FCFA</small></div>
-            <button class="btn-payout-request">Retirer mes fonds</button>
+        <div class="stats-card">
+            <div class="stat-item">
+                <span class="stat-label">Visites Reçues</span>
+                <strong class="stat-value" id="stat-visits-count">0</strong>
+            </div>
+            <div class="vertical-divider"></div>
+            <div class="stat-item">
+                <span class="stat-label">Annonces</span>
+                <strong class="stat-value" id="stat-ads-count">0</strong>
+            </div>
         </div>
 
-        <div class="action-grid-aere">
-            <button class="action-card" id="btn-trigger-publish">
-                <div class="icon-circle primary"><i class="fa-solid fa-plus"></i></div>
+        <div class="quick-actions">
+            <button class="action-btn primary" id="btn-open-add-modal">
+                <div class="icon-box"><i class="fa-solid fa-plus"></i></div>
                 <span>Publier</span>
             </button>
-            <button class="action-card" id="btn-trigger-validate">
-                <div class="icon-circle secondary"><i class="fa-solid fa-qrcode"></i></div>
-                <span>Valider Code</span>
+            <button class="action-btn secondary" id="btn-open-scan-modal">
+                <div class="icon-box"><i class="fa-solid fa-qrcode"></i></div>
+                <span>Valider</span>
             </button>
         </div>
 
-        <div class="dashboard-section-list">
-            <h3>Mes annonces</h3>
-            <div id="my-listings-summary" class="mini-list">
+        <div class="dashboard-list-section">
+            <h3 class="section-title">Mes Biens en ligne</h3>
+            <div id="owner-properties-list" class="list-vertical">
+                <div class="empty-dashboard-state" id="empty-dashboard">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" alt="Vide" width="60">
+                    <p>Vous n'avez aucune annonce.</p>
                 </div>
+            </div>
         </div>
     </section>
 
-    <div id="modal-validate-code" class="modal-bottom app-section">
-        <div class="modal-content">
-            <button class="btn-close-modal" onclick="closeValidateModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h3>Valider une visite</h3>
-            <p>Entrez le code à 4 chiffres fourni par le client.</p>
-            <div class="form-group-aere">
-                <input type="number" id="input-visit-code" placeholder="0 0 0 0" class="input-code-huge">
+    <div id="modal-publish" class="modal-overlay">
+        <div class="modal-card">
+            <header class="modal-header">
+                <h3>Nouveau Bien</h3>
+                <button class="close-modal-btn" id="close-publish"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            
+            <div class="modal-scroll-content">
+                <div class="image-upload-wrapper">
+                    <label for="new-prop-image" class="upload-label" id="upload-preview-area">
+                        <i class="fa-solid fa-camera"></i>
+                        <span>Ajouter une photo</span>
+                    </label>
+                    <input type="file" id="new-prop-image" hidden accept="image/*">
+                </div>
+
+                <div class="form-grid">
+                    <div class="input-simple">
+                        <select id="new-prop-type">
+                            <option value="Studio">Studio</option>
+                            <option value="Appartement">Appartement</option>
+                            <option value="Chambre">Chambre</option>
+                            <option value="Villa">Villa</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-row">
+                        <input type="text" id="new-prop-city" placeholder="Ville" class="input-half">
+                        <input type="text" id="new-prop-district" placeholder="Quartier" class="input-half">
+                    </div>
+
+                    <div class="input-simple">
+                        <input type="number" id="new-prop-rent" placeholder="Loyer mensuel (FCFA)">
+                    </div>
+
+                    <div class="input-highlight">
+                        <input type="number" id="new-prop-fees" placeholder="Frais de visite (FCFA)">
+                        <small><i class="fa-solid fa-circle-info"></i> Montant payé par le visiteur</small>
+                    </div>
+                </div>
             </div>
-            <button class="btn-primary-full" onclick="validateVisitCode()">Confirmer le paiement</button>
+
+            <footer class="modal-footer">
+                <button class="btn-primary-full" id="btn-confirm-publish">Mettre en ligne</button>
+            </footer>
         </div>
     </div>
 
-    <section id="publish-flow" class="modal-full">
-        <header class="flow-header">
-            <button class="btn-close-flow" id="close-publish"><i class="fa-solid fa-xmark"></i></button>
-            <div class="progress-container"><div class="progress-bar" id="publish-progress"></div></div>
-            <span class="step-indicator">Étape <span id="current-step-num">1</span>/3</span>
-        </header>
-
-        <div class="flow-content">
-            <div class="step-pane active" id="step-1">
-                <h3>Photo du bien</h3>
-                <div class="upload-zone-aeree">
-                    <label for="ad-image" class="upload-label">
-                        <i class="fa-solid fa-camera"></i>
-                        <input type="file" id="ad-image" hidden accept="image/*">
-                    </label>
-                    <div id="image-preview-container"></div>
-                </div>
+    <div id="modal-validate" class="modal-overlay">
+        <div class="modal-card small-card">
+            <button class="close-modal-abs" id="close-validate"><i class="fa-solid fa-xmark"></i></button>
+            <div class="validate-content">
+                <div class="icon-circle-top"><i class="fa-solid fa-check-to-slot"></i></div>
+                <h3>Valider une visite</h3>
+                <p>Entrez le code fourni par le client</p>
+                <input type="number" id="visit-code-input" class="input-code-large" placeholder="0000">
+                <button class="btn-primary-full" id="btn-confirm-code">Valider</button>
             </div>
-            </div>
+        </div>
+    </div>
 
-        <footer class="flow-footer">
-            <button class="btn-secondary" id="btn-prev-step">Retour</button>
-            <button class="btn-primary" id="btn-next-step">Suivant</button>
-            <button class="btn-primary" id="btn-final-submit" style="display: none;">Publier</button>
-        </footer>
-    </section>
+    <div id="loading-overlay" class="loader-container">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="toast-container" class="toast-wrapper"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+        import { getStorage } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBfhlCUVHIH5S0xFZgl74srQv0qGKx60Zo",
+            authDomain: "mappiol.firebaseapp.com",
+            projectId: "mappiol",
+            storageBucket: "mappiol.firebasestorage.app",
+            messagingSenderId: "316903605477",
+            appId: "1:316903605477:web:c922f5dd7a37a45567000c",
+            measurementId: "G-YW1KKGRMNN"
+        };
+
+        // Initialisation globale
+        window.app = initializeApp(firebaseConfig);
+        window.analytics = getAnalytics(window.app);
+        window.auth = getAuth(window.app);
+        window.db = getFirestore(window.app);
+        window.storage = getStorage(window.app); // Ajouté pour le futur stockage d'images si besoin
+        
+        console.log("Firebase initialized");
+    </script>
 
     <script type="module" src="script.js"></script>
 </body>
