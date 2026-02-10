@@ -10,41 +10,34 @@
 </head>
 <body>
 
-    <section id="welcome-screen" class="full-screen">
+    <section id="welcome-screen" class="full-screen active">
         <div class="hero-content">
             <div class="brand">
                 <span class="logo-dot"></span>
                 <h1 class="brand-name">Mappiol</h1>
             </div>
-            
             <div class="hero-text">
-                <h2>L'immobilier, <br>en toute confiance.</h2>
+                <h2>L'immobilier,<br>en toute confiance.</h2>
                 <p>Louez un bien ou rentabilisez vos visites en quelques clics.</p>
             </div>
-
             <div class="entry-options">
                 <button class="btn-primary-large" id="start-visitor">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <span>Je cherche un logement</span>
                 </button>
-                
-                <div class="divider">
-                    <span>OU</span>
-                </div>
-
+                <div class="divider"><span>OU</span></div>
                 <button class="btn-outline-large" id="start-owner">
                     <i class="fa-solid fa-house-user"></i>
                     <span>Je suis propriétaire</span>
                 </button>
             </div>
         </div>
-        
         <footer class="welcome-footer">
             <p>&copy; 2026 Mappiol. Tous droits réservés.</p>
         </footer>
     </section>
+
     <section id="visitor-view" class="app-section">
-        
         <header class="search-header">
             <div class="search-top-bar">
                 <button class="btn-icon-back" id="back-to-welcome">
@@ -52,7 +45,6 @@
                 </button>
                 <div class="search-title">Explorer les biens</div>
             </div>
-
             <div class="search-inputs-container">
                 <div class="input-field">
                     <i class="fa-solid fa-city"></i>
@@ -62,233 +54,123 @@
                     <i class="fa-solid fa-map-location-dot"></i>
                     <input type="text" id="search-district" placeholder="Quartier (ex: Akwa)">
                 </div>
-                <button class="btn-apply-search">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </button>
+                <button class="btn-apply-search"><i class="fa-solid fa-magnifying-glass"></i></button>
             </div>
-
             <div class="category-filter-bar">
                 <button class="chip active">Tous</button>
                 <button class="chip">Studios</button>
                 <button class="chip">Appartements</button>
-                <button class="chip">Villas</button>
-                <button class="chip">Chambres</button>
             </div>
         </header>
 
-        <div class="listings-scroll-area">
-            <div id="feed-container" class="listings-grid">
-                <div class="empty-state-msg">
-                    <i class="fa-solid fa-house-chimney"></i>
-                    <p>Entrez une ville et un quartier pour commencer l'exploration.</p>
-                </div>
+        <div id="feed-container" class="listings-grid">
+            <div class="empty-state-msg">
+                <i class="fa-solid fa-house-chimney"></i>
+                <p>Entrez une ville et un quartier pour commencer.</p>
             </div>
         </div>
-
     </section>
-    <div class="property-card">
-    <div class="card-image-wrapper">
-        <img src="image-demo.jpg" alt="Logement" class="card-img">
-        <span class="badge-category">Studio</span>
-        <button class="btn-wishlist"><i class="fa-regular fa-heart"></i></button>
-    </div>
 
-    <div class="card-content">
-        <div class="card-main-info">
-            <h3 class="card-title">Studio moderne avec balcon</h3>
-            <p class="card-location">
-                <i class="fa-solid fa-location-dot"></i> 
-                Douala, Akwa
-            </p>
-        </div>
-
-        <div class="card-footer-prices">
-            <div class="price-rent">
-                <span class="amount">85 000</span> 
-                <span class="currency">FCFA</span>
-                <span class="period">/mois</span>
-            </div>
-            
-            <div class="price-visit">
-                <i class="fa-solid fa-person-walking"></i>
-                <span>Visite: <strong>2 000</strong> FCFA</span>
-            </div>
-        </div>
-    </div>
-</div>
-<section id="owner-auth-view" class="app-section">
+    <section id="owner-auth-view" class="app-section">
         <header class="auth-header">
             <button class="btn-icon-back" id="back-from-auth">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
         </header>
-
         <div class="auth-container">
             <div class="auth-welcome">
                 <h2>Rejoignez Mappiol</h2>
-                <p>Créez votre compte pour publier vos biens et commencer à rentabiliser vos visites.</p>
+                <p>Connectez-vous pour gérer vos revenus.</p>
             </div>
-
             <form id="auth-form" class="clean-form">
                 <div class="form-group-aere">
-                    <label for="auth-email">Votre adresse email</label>
+                    <label>Email</label>
                     <input type="email" id="auth-email" placeholder="exemple@mail.com">
                 </div>
-
                 <div class="form-group-aere">
-                    <label for="auth-pass">Mot de passe</label>
-                    <input type="password" id="auth-pass" placeholder="Minimum 6 caractères">
+                    <label>Mot de passe</label>
+                    <input type="password" id="auth-pass" placeholder="••••••••">
                 </div>
-
                 <div class="auth-actions">
-                    <button type="submit" class="btn-primary-full" id="btn-login">
-                        Se connecter
-                    </button>
-                    <button type="button" class="btn-text-only" id="btn-switch-signup">
-                        Pas encore de compte ? Créer un compte
-                    </button>
+                    <button type="submit" class="btn-primary-full" id="btn-login">Se connecter</button>
+                    <button type="button" class="btn-text-only" id="btn-switch-signup">Créer un compte</button>
                 </div>
             </form>
-
-            <div class="auth-trust-badges">
-                <div class="trust-item">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <span>Paiements sécurisés</span>
-                </div>
-                <div class="trust-item">
-                    <i class="fa-solid fa-wallet"></i>
-                    <span>Revenus directs</span>
-                </div>
-            </div>
         </div>
     </section>
+
     <section id="owner-dashboard" class="app-section">
-        
         <header class="dashboard-header">
             <div class="user-profile-summary">
                 <div class="avatar-circle">JD</div>
-                <div class="user-welcome">
-                    <span>Bienvenue,</span>
-                    <strong>Jean Dupont</strong>
-                </div>
+                <div class="user-welcome"><span>Bienvenue,</span> <strong>Jean Dupont</strong></div>
             </div>
-            <button class="btn-icon-logout" title="Déconnexion"><i class="fa-solid fa-power-off"></i></button>
+            <button class="btn-icon-logout"><i class="fa-solid fa-power-off"></i></button>
         </header>
 
-        <div class="dashboard-content">
-            
-            <div class="wallet-card-premium">
-                <div class="wallet-label">Gains des visites</div>
-                <div class="wallet-balance"><span id="total-balance">0</span> <small>FCFA</small></div>
-                <button class="btn-payout-request">Demander un retrait</button>
-            </div>
+        <div class="wallet-card-premium">
+            <div class="wallet-label">Gains des visites</div>
+            <div class="wallet-balance"><span id="total-balance">0</span> <small>FCFA</small></div>
+            <button class="btn-payout-request">Retirer mes fonds</button>
+        </div>
 
-            <div class="action-grid-aere">
-                <button class="action-card" id="btn-trigger-publish">
-                    <div class="icon-circle primary"><i class="fa-solid fa-plus"></i></div>
-                    <span>Publier un bien</span>
-                </button>
-                <button class="action-card" id="btn-trigger-validate">
-                    <div class="icon-circle secondary"><i class="fa-solid fa-qrcode"></i></div>
-                    <span>Valider un code</span>
-                </button>
-            </div>
+        <div class="action-grid-aere">
+            <button class="action-card" id="btn-trigger-publish">
+                <div class="icon-circle primary"><i class="fa-solid fa-plus"></i></div>
+                <span>Publier</span>
+            </button>
+            <button class="action-card" id="btn-trigger-validate">
+                <div class="icon-circle secondary"><i class="fa-solid fa-qrcode"></i></div>
+                <span>Valider Code</span>
+            </button>
+        </div>
 
-            <div class="dashboard-section-list">
-                <div class="section-title-row">
-                    <h3>Mes annonces actives</h3>
-                    <a href="#" class="link-see-all">Voir tout</a>
+        <div class="dashboard-section-list">
+            <h3>Mes annonces</h3>
+            <div id="my-listings-summary" class="mini-list">
                 </div>
-                
-                <div id="my-listings-summary" class="mini-list">
-                    <div class="mini-item-card">
-                        <img src="thumb.jpg" alt="Bien">
-                        <div class="mini-item-info">
-                            <h4>Studio Cité-Palmier</h4>
-                            <p>85.000 FCFA • 12 visites reçues</p>
-                        </div>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </div>
-
-                    <div class="empty-dashboard-state">
-                        <p>Vous n'avez aucune annonce en ligne.</p>
-                        <button class="btn-text-link">Commencer maintenant</button>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </section>
+
+    <div id="modal-validate-code" class="modal-bottom app-section">
+        <div class="modal-content">
+            <button class="btn-close-modal" onclick="closeValidateModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h3>Valider une visite</h3>
+            <p>Entrez le code à 4 chiffres fourni par le client.</p>
+            <div class="form-group-aere">
+                <input type="number" id="input-visit-code" placeholder="0 0 0 0" class="input-code-huge">
+            </div>
+            <button class="btn-primary-full" onclick="validateVisitCode()">Confirmer le paiement</button>
+        </div>
+    </div>
+
     <section id="publish-flow" class="modal-full">
         <header class="flow-header">
             <button class="btn-close-flow" id="close-publish"><i class="fa-solid fa-xmark"></i></button>
-            <div class="progress-container">
-                <div class="progress-bar" id="publish-progress" style="width: 33%;"></div>
-            </div>
+            <div class="progress-container"><div class="progress-bar" id="publish-progress"></div></div>
             <span class="step-indicator">Étape <span id="current-step-num">1</span>/3</span>
         </header>
 
         <div class="flow-content">
-            
             <div class="step-pane active" id="step-1">
-                <h3>Commençons par le visuel</h3>
-                <p class="step-desc">Une belle photo attire 5x plus de visiteurs.</p>
-                
+                <h3>Photo du bien</h3>
                 <div class="upload-zone-aeree">
                     <label for="ad-image" class="upload-label">
-                        <i class="fa-solid fa-camera-retro"></i>
-                        <span>Ajouter une photo principale</span>
+                        <i class="fa-solid fa-camera"></i>
                         <input type="file" id="ad-image" hidden accept="image/*">
                     </label>
-                    <div id="image-preview-container" class="preview-box"></div>
+                    <div id="image-preview-container"></div>
                 </div>
             </div>
-
-            <div class="step-pane" id="step-2">
-                <h3>Où se situe le bien ?</h3>
-                <div class="form-group-aere">
-                    <label>Type de bien</label>
-                    <select id="ad-type-select">
-                        <option value="studio">Studio</option>
-                        <option value="appartement">Appartement</option>
-                        <option value="chambre">Chambre</option>
-                        <option value="villa">Villa</option>
-                    </select>
-                </div>
-                <div class="form-group-aere">
-                    <label>Ville</label>
-                    <input type="text" id="ad-city" placeholder="ex: Douala">
-                </div>
-                <div class="form-group-aere">
-                    <label>Quartier</label>
-                    <input type="text" id="ad-district" placeholder="ex: Bonapriso">
-                </div>
             </div>
-
-            <div class="step-pane" id="step-3">
-                <h3>Fixez vos conditions</h3>
-                <div class="form-group-aere highlight-box">
-                    <label>Loyer mensuel (FCFA)</label>
-                    <input type="number" id="ad-rent-price" placeholder="ex: 100000">
-                </div>
-                
-                <div class="form-group-aere highlight-box-accent">
-                    <label>Frais de visite (FCFA)</label>
-                    <input type="number" id="ad-visit-price" placeholder="ex: 2000">
-                    <p class="input-info">Ces frais vous seront versés dès validation du code visiteur.</p>
-                </div>
-
-                <div class="form-group-aere">
-                    <label>Brève description</label>
-                    <textarea id="ad-description" placeholder="Atouts du bien (sécurité, forage, étage...)"></textarea>
-                </div>
-            </div>
-
-        </div>
 
         <footer class="flow-footer">
-            <button class="btn-secondary" id="btn-prev-step" style="visibility: hidden;">Retour</button>
+            <button class="btn-secondary" id="btn-prev-step">Retour</button>
             <button class="btn-primary" id="btn-next-step">Suivant</button>
-            <button class="btn-primary" id="btn-final-submit" style="display: none;">Mettre en ligne</button>
+            <button class="btn-primary" id="btn-final-submit" style="display: none;">Publier</button>
         </footer>
     </section>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

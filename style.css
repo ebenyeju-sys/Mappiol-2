@@ -1,176 +1,251 @@
+/* ==========================================================================
+   CHARTE GRAPHIQUE : MIDNIGHT & GOLD
+   ========================================================================== */
+
 :root {
-    /* Palette Monochrome de Luxe */
-    --pure-white: #FFFFFF;
-    --soft-white: #FBFBFD;
-    --border-silver: #EAEAEB;
-    --text-deep: #1D1D1F;      /* Noir Apple */
-    --text-muted: #86868B;     /* Gris élégant */
-    --accent-gold: #D4AF37;    /* Pour les touches business */
+    /* Palette de Luxe */
+    --bg-pure: #FFFFFF;
+    --bg-soft: #F8F9FB;          /* Gris bleuté très pâle pour le relief */
+    --midnight: #0A1128;         /* Bleu nuit profond (Sérieux & Confiance) */
+    --midnight-light: #1C2541;   /* Bleu nuit adouci */
+    --gold: #C5A059;             /* Or sablé (Action & Profit) */
+    --gold-light: #E0C9A0;       /* Or pâle pour les interactions */
     
-    /* Système d'espacement (Spacing Scale) */
-    --space-xs: 8px;
-    --space-s: 16px;
+    /* Typographie */
+    --text-main: #0A1128;
+    --text-muted: #5B6171;
+    
+    /* Structure */
+    --border-color: #E2E8F0;
+    --radius-card: 24px;
+    --radius-pill: 500px;
     --space-m: 24px;
     --space-l: 40px;
-    --space-xl: 64px;
-
-    /* Courbes */
-    --radius-pill: 500px;
-    --radius-card: 20px;
     
-    /* Ombre portée ultra-légère */
-    --shadow-subtle: 0 8px 30px rgba(0, 0, 0, 0.04);
+    /* Effets */
+    --shadow-premium: 0 10px 40px rgba(10, 17, 40, 0.05);
+    --shadow-gold: 0 10px 20px rgba(197, 160, 89, 0.2);
 }
+
+/* ==========================================================================
+   RESET & FONDATIONS
+   ========================================================================== */
 
 * {
     box-sizing: border-box;
-    -webkit-font-smoothing: antialiased;
     margin: 0;
     padding: 0;
+    -webkit-font-smoothing: antialiased;
 }
 
 body {
-    background-color: var(--pure-white);
-    color: var(--text-deep);
+    background-color: var(--bg-pure);
+    color: var(--text-main);
     font-family: 'Plus Jakarta Sans', sans-serif;
-    line-height: 1.5;
+    line-height: 1.6;
+    overflow-x: hidden;
 }
-.app-section {
-    display: none; /* Géré par JS */
+
+/* Système de navigation (Aération) */
+.full-screen, .app-section, .modal-full {
+    display: none; /* Caché par défaut */
     min-height: 100vh;
     padding: var(--space-m);
-    animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    background: var(--bg-pure);
+}
+
+/* Déclencheur de visibilité JS */
+.active { 
+    display: block !important; 
+    animation: fadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Conteneur pour limiter la largeur sur tablette/PC et rester centré */
-.container-narrow {
-    max-width: 500px;
-    margin: 0 auto;
+/* ==========================================================================
+   COMPOSANTS BOUTONS (OR & MINUIT)
+   ========================================================================== */
+
+.btn-primary-large, .btn-primary-full {
+    width: 100%;
+    background: var(--gold);
+    color: white;
+    padding: 22px;
+    border-radius: 18px;
+    border: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-gold);
+    transition: all 0.3s ease;
 }
+
+.btn-primary-large:active, .btn-primary-full:active {
+    transform: scale(0.97);
+    background: var(--gold-light);
+}
+
+.btn-outline-large {
+    width: 100%;
+    background: transparent;
+    border: 1.5px solid var(--midnight);
+    color: var(--midnight);
+    padding: 22px;
+    border-radius: 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   ACCUEIL (HERO)
+   ========================================================================== */
+
 .hero-content {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    height: 80vh;
-    text-align: left;
+    height: 85vh;
 }
 
-.brand-name {
+.brand { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    margin-bottom: var(--space-l);
+}
+
+.logo-dot { 
+    width: 14px; 
+    height: 14px; 
+    background: var(--gold); 
+    border-radius: 50%; 
+}
+
+.brand-name { font-size: 1.6rem; font-weight: 800; }
+
+.hero-text h2 { 
+    font-size: 3rem; 
+    line-height: 1.1; 
+    font-weight: 800; 
+    margin-bottom: 20px;
+    color: var(--midnight);
+}
+
+.hero-text p { color: var(--text-muted); font-size: 1.1rem; }
+
+.divider { 
+    text-align: center; 
+    margin: 25px 0; 
+    color: var(--border-color);
     font-weight: 800;
-    font-size: 1.5rem;
-    letter-spacing: -0.5px;
-    margin-bottom: var(--space-xl);
+    font-size: 0.8rem;
 }
 
-.hero-text h2 {
-    font-size: 2.8rem;
-    font-weight: 800;
-    line-height: 1.1;
-    margin-bottom: var(--space-m);
-}
+/* ==========================================================================
+   RECHERCHE ET FILTRES (VISITEUR)
+   ========================================================================== */
 
-.entry-options {
-    margin-top: var(--space-l);
-}
-
-.btn-primary-large {
-    width: 100%;
-    background: var(--text-deep);
-    color: var(--pure-white);
-    padding: 24px;
+.search-inputs-container {
+    background: var(--bg-soft);
+    padding: var(--space-s);
     border-radius: var(--radius-card);
-    border: none;
-    font-weight: 600;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: transform 0.2s ease;
+    margin-top: var(--space-m);
 }
 
-.btn-primary-large:active {
-    transform: scale(0.98);
+.input-field {
+    background: white;
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
 }
+
+.input-field input { border: none; outline: none; width: 100%; font-size: 1rem; }
+.input-field i { color: var(--gold); }
+
+/* ==========================================================================
+   DASHBOARD (PORTEFEUILLE)
+   ========================================================================== */
+
+.wallet-card-premium {
+    background: linear-gradient(135deg, var(--midnight) 0%, #1C2541 100%);
+    color: white;
+    padding: 35px;
+    border-radius: var(--radius-card);
+    margin: 30px 0;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(197, 160, 89, 0.2);
+}
+
+.wallet-label { 
+    color: var(--gold-light); 
+    font-size: 0.75rem; 
+    text-transform: uppercase; 
+    letter-spacing: 2px;
+    font-weight: 800;
+}
+
+.wallet-balance { font-size: 2.8rem; font-weight: 800; margin: 10px 0; }
+
+.action-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--border-color);
+    padding: 25px;
+    border-radius: 22px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.action-card:active { background: white; border-color: var(--gold); }
+
+.icon-circle { 
+    width: 55px; 
+    height: 55px; 
+    background: white; 
+    border-radius: 50%; 
+    margin: 0 auto 12px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: var(--gold);
+    box-shadow: var(--shadow-premium);
+    font-size: 1.2rem;
+}
+
+/* ==========================================================================
+   CARTES DE BIENS (LISTINGS)
+   ========================================================================== */
+
 .property-card {
     margin-bottom: var(--space-xl);
-    text-decoration: none;
-    color: inherit;
 }
 
 .card-image-wrapper {
-    width: 100%;
-    aspect-ratio: 4 / 5; /* Format portrait élégant */
+    position: relative;
+    aspect-ratio: 1 / 1;
     border-radius: var(--radius-card);
     overflow: hidden;
-    background-color: var(--soft-white);
 }
 
-.card-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s ease;
-}
-
-.card-content {
-    padding-top: var(--space-s);
-}
-
-.card-location {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.card-footer-prices {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: var(--space-xs);
-}
-
-.amount {
-    font-size: 1.5rem;
-    font-weight: 700;
-}
+.card-img { width: 100%; height: 100%; object-fit: cover; }
 
 .price-visit {
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 6px 12px;
-    background: var(--soft-white);
-    border: 1px solid var(--border-silver);
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 15px;
     border-radius: var(--radius-pill);
-}
-.form-group-aere {
-    margin-bottom: var(--space-m);
-}
-
-.form-group-aere label {
-    display: block;
     font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    margin-bottom: var(--space-xs);
-}
-
-.form-group-aere input, 
-.form-group-aere select {
-    width: 100%;
-    padding: 18px;
-    border: 1px solid var(--border-silver);
-    border-radius: 12px;
-    font-size: 1rem;
-    background-color: var(--soft-white);
-    transition: border-color 0.3s ease;
-}
-
-.form-group-aere input:focus {
-    border-color: var(--text-deep);
-    outline: none;
+    font-weight: 800;
+    color: var(--gold);
+    box-shadow: var(--shadow-premium);
 }
