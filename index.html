@@ -2,149 +2,67 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mappiol - Immobilier Pro</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mappiol Pro | Immobilier</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header class="main-header">
-        <h1>Mappiol</h1>
-        <div class="header-actions">
-            <button id="theme-btn"><i class="fa-solid fa-moon"></i></button>
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="m-logo">MAPPIOL <span style="color:var(--txt)">PRO</span></div>
+            <button id="theme-btn"><i class="fa-solid fa-circle-half-stroke"></i></button>
         </div>
     </header>
 
-    <div class="search-container">
-        <input type="text" id="search-input" placeholder="Rechercher un quartier (ex: Bastos)...">
-    </div>
-
-    <main id="router-outlet">
-        </main>
-
-    <nav class="mobile-nav">
-        <div class="nav-item" id="nav-home">
-            <i class="fa-solid fa-house"></i>
-            <span>Accueil</span>
-        </div>
-        <div class="nav-center" id="nav-add">
-            <i class="fa-solid fa-plus"></i>
-        </div>
-        <div class="nav-item" id="nav-profile">
-            <i class="fa-solid fa-circle-user"></i>
-            <span>Profil</span>
-        </div>
-    </nav>
-
-    <div class="modal" id="auth-modal">
-        <div class="modal-content">
-            <span class="close" id="close-auth">&times;</span>
-            
-            <div id="auth-logged-out">
-                <h2>Rejoindre Mappiol</h2>
-                
-                <div id="auth-main-form">
-                    <input type="email" id="auth-email" placeholder="Email">
-                    <input type="password" id="auth-pass" placeholder="Mot de passe (6+ car.)">
-                    <button class="btn" id="btn-login">Continuer</button>
-                    <p style="text-align:center; margin-top:15px;">
-                        <a href="#" id="link-forgot-pw" style="color:var(--primary); font-size:14px;">Mot de passe oublié ?</a>
-                    </p>
-                </div>
-
-                <div id="auth-forgot-form" style="display:none;">
-                    <h3>Récupérer mon compte</h3>
-                    <p style="font-size:13px; margin-bottom:10px;">Entrez votre email pour recevoir un lien de réinitialisation.</p>
-                    <input type="email" id="reset-email" placeholder="Votre email">
-                    <button class="btn" id="btn-send-reset">Envoyer le lien</button>
-                    <p style="text-align:center; margin-top:10px;">
-                        <a href="#" id="link-back-login" style="font-size:14px;">Retour à la connexion</a>
-                    </p>
-                </div>
-            </div>
-
-            <div id="auth-logged-in" style="display:none;">
-                
-                <div id="profile-setup" style="display:none;">
-                    <h3>Complétez votre profil</h3>
-                    <p>Ces infos rassureront vos futurs clients.</p>
-                    <div class="profile-pic-box">
-                        <label for="profile-pic-input" class="pic-label">
-                            <i class="fa-solid fa-camera"></i>
-                            <span>Photo de profil</span>
-                        </label>
-                        <input type="file" id="profile-pic-input" accept="image/*" style="display:none;">
-                    </div>
-                    <input type="text" id="profile-name" placeholder="Nom complet ou Nom d'agence">
-                    <input type="tel" id="profile-phone" placeholder="Numéro WhatsApp (ex: 6...)">
-                    <button class="btn" id="btn-save-profile">Enregistrer mon profil</button>
-                </div>
-
-                <div id="profile-view" style="display:none; text-align:center;">
-                    <div class="avatar-container">
-                        <img id="display-profile-pic" src="" alt="Profil" class="user-avatar">
-                    </div>
-                    <h2 id="display-profile-name">---</h2>
-                    <p id="display-profile-phone" style="color:var(--txt-muted);"></p>
-                    <hr>
-                    <button class="btn-secondary" id="btn-show-favs">
-                        <i class="fa-solid fa-heart"></i> Mes Favoris
-                    </button>
-                    <button class="btn-danger" id="btn-logout">Déconnexion</button>
-                </div>
-            </div>
-        </div>
+    <div id="router-outlet">
+        <p style="text-align:center; padding:100px; color:var(--txt-muted);">Initialisation...</p>
     </div>
 
     <div class="modal" id="add-modal">
         <div class="modal-content">
-            <span class="close" id="close-add">&times;</span>
             <h2>Publier un bien</h2>
-            
-            <div class="upload-zone">
-                <label for="new-img">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <span>Ajouter une photo du bien</span>
-                </label>
-                <input type="file" id="new-img" accept="image/*" style="display:none;">
-                <p id="file-name-hint" style="font-size:11px; color:green;"></p>
-            </div>
-
-            <input type="text" id="new-title" placeholder="Titre (ex: Appartement meublé)">
-            
-            <div class="input-with-icon">
-                <input type="text" id="new-loc" placeholder="Quartier (ex: Akwa, Douala)">
-                <button id="get-location" type="button" title="Ma position actuelle">
-                    <i class="fa-solid fa-location-crosshairs"></i>
-                </button>
-            </div>
-
-            <input type="number" id="new-price" placeholder="Prix (FCFA)">
-            
+            <label>Titre</label>
+            <input type="text" id="new-title" placeholder="Ex: Studio moderne">
+            <label>Quartier</label>
+            <input type="text" id="new-loc" placeholder="Ex: Bastos, Yaoundé">
+            <label>Prix (Min 10 000 FCFA)</label>
+            <input type="number" id="new-price" placeholder="Prix en FCFA">
+            <label>Type</label>
             <select id="new-type">
                 <option value="Chambre">Chambre</option>
                 <option value="Studio">Studio</option>
                 <option value="Appartement">Appartement</option>
-                <option value="Villa">Villa</option>
-                <option value="Terrain">Terrain</option>
             </select>
-
             <button class="btn" id="save-btn">Mettre en ligne</button>
+            <button class="btn-secondary" id="close-add">Annuler</button>
         </div>
     </div>
 
-    <div class="modal" id="comment-modal">
+    <div class="modal" id="auth-modal">
         <div class="modal-content">
-            <span class="close" id="close-comment">&times;</span>
-            <h2 id="comment-header">Commentaires</h2>
-            <div id="comments-display-area" class="comments-list"></div>
-            <div class="comment-input-box">
-                <textarea id="new-comment-text" placeholder="Écrire un commentaire..." rows="2"></textarea>
-                <button class="btn" id="btn-post-comment">Envoyer</button>
+            <div id="auth-logged-out">
+                <h2>Connexion</h2>
+                <input type="email" id="auth-email" placeholder="Email">
+                <input type="password" id="auth-pass" placeholder="Mot de passe">
+                <button class="btn" id="btn-login">Se connecter / S'inscrire</button>
             </div>
+            <div id="auth-logged-in" style="display:none; text-align:center;">
+                <h2>Mon Profil</h2>
+                <p id="user-display-email" style="margin-bottom:20px; font-weight:600;"></p>
+                <button class="btn" style="background:#ef4444;" id="btn-logout">Se déconnecter</button>
+            </div>
+            <button class="btn-secondary" id="close-auth">Fermer</button>
         </div>
     </div>
+
+    <nav class="mobile-nav">
+        <i class="fa-solid fa-house-chimney" id="nav-home"></i>
+        <div class="nav-center" id="nav-add"><i class="fa-solid fa-plus"></i></div>
+        <i class="fa-solid fa-user-circle" id="nav-profile"></i>
+    </nav>
 
     <script type="module" src="script.js"></script>
 </body>
