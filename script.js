@@ -1,351 +1,578 @@
-// --- INITIALISATION DES SERVICES ---
-const auth = window.auth;
-const db = window.db;
+import { 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-// --- GESTION DES ÉCRANS ---
-const screens = {
-    landing: document.getElementById('landing-screen'),
-    visitor: document.getElementById('visitor-screen'),
-    auth: document.getElementById('auth-screen'),
-    dashboard: document.getElementById('dashboard-screen'),
-    publish: document.getElementById('modal-publish'),
-    validate: document.getElementById('modal-validate')
-};
+import { 
+    collection, 
+    addDoc, 
+    getDocs, 
+    query, 
+    where, 
+    orderBy,
+    updateDoc,
+    deleteDoc,
+    doc,
+    serverTimestamp,
+    getDoc,
+    setDoc
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-/**
- * Navigue entre les écrans principaux avec fluidité
- */
-function navigateTo(screenId) {
-    // On cache tous les écrans principaux
-    [screens.landing, screens.visitor, screens.auth, screens.dashboard].forEach(s => {
-        s.classList.remove('active-screen');
-        s.style.display = 'none';
-    });
+import { 
+    ref, 
+    uploadBytes, 
+    getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
-    // On affiche l'écran cible
-    const target = screens[screenId];
-    target.style.display = 'flex';
-    setTimeout(() => {
-        target.classList.add('active-screen');
-    }, 10);
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+const { auth, db, storage } = window;
+
+// ============== VARIABLES GLOBALES ==============
+let currentUser = null;
+let userProfile = null;
+let allPropertiesCache = [];
+let currentEditPropertyId = null;
+let currentDeletePropertyId = null;
+let uploadedMediaFiles = [];
+let availabilitySlots = [];
+let editAvailabilitySlots = [];
+
+// ============== GESTION DES ÉCRANS ==============
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+    document.getElementById(screenId).classList.add('active-screen');
 }
 
-// --- ÉVÉNEMENTS DE NAVIGATION ---
-document.getElementById('btn-enter-visitor').onclick = () => navigateTo('visitor');
-document.getElementById('btn-enter-owner').onclick = () => {
-    // Si déjà connecté, go dashboard, sinon auth
-    auth.currentUser ? navigateTo('dashboard') : navigateTo('auth');
-};
+function showLoading() {
+    document.getElementById('loading-overlay').classList.add('active');
+}
 
-document.getElementById('back-visitor').onclick = () => navigateTo('landing');
-document.getElementById('back-auth').onclick = () => navigateTo('landing');
+function hideLoading() {
+    document.getElementById('loading-overlay').classList.remove('active');
+}
 
-/**
- * Affiche un message élégant à l'utilisateur
- */
-function showNotification(message, type = 'info') {
+function showNotification(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    
-    const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
-    
     toast.innerHTML = `
-        <i class="fa-solid ${icon}"></i>
-        <span>${message}</span>
+        <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
+        <span class="toast-text">${message}</span>
     `;
-    
     container.appendChild(toast);
     
-    // Disparition après 3.5s
     setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-        setTimeout(() => toast.remove(), 500);
-    }, 3500);
+        toast.remove();
+    }, 3000);
 }
 
-let isSignUpMode = false;
-
-// Basculer entre Connexion et Inscription
-document.getElementById('btn-toggle-signup').onclick = function() {
-    isSignUpMode = !isSignUpMode;
-    const title = document.querySelector('.auth-header-text h2');
-    const btn = document.getElementById('btn-auth-action');
-    
-    title.innerText = isSignUpMode ? "Créer un compte" : "Bienvenue";
-    btn.innerText = isSignUpMode ? "S'inscrire" : "Se connecter";
-    this.innerText = isSignUpMode ? "Se connecter" : "Créer un compte";
+// ============== NAVIGATION ==============
+document.getElementById('btn-enter-visitor').onclick = () => {
+    showScreen('visitor-screen');
+    loadAllProperties();
 };
 
-// Soumission du formulaire
+document.getElementById('btn-enter-owner').onclick = () => {
+    showScreen('auth-screen');
+};
+
+document.getElementById('back-visitor').onclick = () => {
+    showScreen('landing-screen');
+};
+
+document.getElementById('back-auth').onclick = () => {
+    showScreen('landing-screen');
+};
+
+document.getElementById('back-profile-setup').onclick = () => {
+    showScreen('dashboard-screen');
+};
+
+document.getElementById('btn-logout').onclick = async () => {
+    try {
+        await signOut(auth);
+        showScreen('landing-screen');
+        showNotification('Déconnexion réussie');
+    } catch (error) {
+        showNotification('Erreur de déconnexion', 'error');
+    }
+};
+
+// ============== AUTHENTIFICATION ==============
+let isSignupMode = false;
+
+document.getElementById('btn-toggle-signup').onclick = () => {
+    isSignupMode = !isSignupMode;
+    const btn = document.getElementById('btn-auth-action');
+    const toggle = document.querySelector('.auth-toggle p');
+    
+    if (isSignupMode) {
+        btn.textContent = "Créer un compte";
+        toggle.innerHTML = 'Déjà un compte ? <span id="btn-toggle-signup">Se connecter</span>';
+        document.querySelector('.auth-header-text h2').textContent = "Créer un compte";
+        document.querySelector('.auth-header-text p').textContent = "Rejoignez Mappiol dès maintenant.";
+    } else {
+        btn.textContent = "Se connecter";
+        toggle.innerHTML = 'Pas encore de compte ? <span id="btn-toggle-signup">Créer un compte</span>';
+        document.querySelector('.auth-header-text h2').textContent = "Bienvenue";
+        document.querySelector('.auth-header-text p').textContent = "Connectez-vous pour gérer vos biens.";
+    }
+    
+    document.getElementById('btn-toggle-signup').onclick = arguments.callee;
+};
+
 document.getElementById('auth-form').onsubmit = async (e) => {
     e.preventDefault();
+    
     const email = document.getElementById('auth-email').value;
-    const pass = document.getElementById('auth-pass').value;
-    const loader = document.getElementById('loading-overlay');
-
-    loader.style.display = 'flex';
-
+    const password = document.getElementById('auth-pass').value;
+    
+    showLoading();
+    
     try {
-        if (isSignUpMode) {
-            await window.firebaseAuth.createUserWithEmailAndPassword(auth, email, pass);
-            showNotification("Compte créé avec succès !", "success");
+        if (isSignupMode) {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            currentUser = userCredential.user;
+            
+            // Créer un document de profil vide
+            await setDoc(doc(db, "users", currentUser.uid), {
+                email: email,
+                createdAt: serverTimestamp(),
+                profileCompleted: false
+            });
+            
+            showScreen('profile-setup-screen');
+            showNotification('Compte créé avec succès !');
         } else {
-            await window.firebaseAuth.signInWithEmailAndPassword(auth, email, pass);
-            showNotification("Heureux de vous revoir", "success");
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            currentUser = userCredential.user;
+            
+            // Vérifier si le profil est complété
+            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+            
+            if (!userDoc.exists() || !userDoc.data().profileCompleted) {
+                showScreen('profile-setup-screen');
+            } else {
+                userProfile = userDoc.data();
+                showScreen('dashboard-screen');
+                loadDashboardData();
+            }
+            
+            showNotification('Connexion réussie !');
         }
     } catch (error) {
         console.error(error);
-        showNotification("Erreur : " + error.message, "error");
+        showNotification(error.message, 'error');
     } finally {
-        loader.style.display = 'none';
+        hideLoading();
     }
 };
 
-// Déconnexion
-document.getElementById('btn-logout').onclick = () => {
-    window.firebaseAuth.signOut(auth).then(() => {
-        showNotification("Déconnecté");
-        navigateTo('landing');
-    });
-};
-
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        document.getElementById('dashboard-username').innerText = user.email.split('@')[0];
-        // Charger les données du propriétaire ici
-        loadOwnerData(user.uid);
-        if(screens.auth.classList.contains('active-screen')) {
-            navigateTo('dashboard');
-        }
-    } else {
-        // Optionnel : redirection si on tente d'accéder au dashboard sans être connecté
-    }
-});
-
-// --- FONCTIONS UTILITAIRES DES MODALES ---
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Empêche le défilement en arrière-plan
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
-    
-    // Si c'est la modale de publication, on reset le formulaire
-    if(modalId === 'modal-publish') {
-        document.getElementById('upload-preview-area').innerHTML = '<i class="fa-solid fa-camera"></i><span>Ajouter une photo</span>';
-        // Reset des autres champs si nécessaire
-    }
-}
-
-// Liaisons des boutons
-document.getElementById('btn-open-add-modal').onclick = () => openModal('modal-publish');
-document.getElementById('close-publish').onclick = () => closeModal('modal-publish');
-document.getElementById('btn-open-scan-modal').onclick = () => openModal('modal-validate');
-document.getElementById('close-validate').onclick = () => closeModal('modal-validate');
-
-document.getElementById('new-prop-image').onchange = function(e) {
+// ============== GESTION DU PROFIL ==============
+document.getElementById('profile-photo-input').onchange = (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(event) {
-            const previewArea = document.getElementById('upload-preview-area');
-            previewArea.innerHTML = `<img src="${event.target.result}" class="preview-img">`;
+        reader.onload = (event) => {
+            const circle = document.querySelector('.profile-photo-circle');
+            circle.innerHTML = `<img src="${event.target.result}" alt="Photo de profil">`;
         };
         reader.readAsDataURL(file);
     }
 };
 
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-
-document.getElementById('btn-confirm-publish').onclick = async () => {
-    const user = auth.currentUser;
-    if (!user) return showNotification("Veuillez vous connecter", "error");
-
-    // Récupération des données
-    const type = document.getElementById('new-prop-type').value;
-    const city = document.getElementById('new-prop-city').value;
-    const district = document.getElementById('new-prop-district').value;
-    const rent = document.getElementById('new-prop-rent').value;
-    const fees = document.getElementById('new-prop-fees').value;
-
-    // Validation simple
-    if (!city || !district || !rent || !fees) {
-        return showNotification("Veuillez remplir tous les champs", "error");
+document.getElementById('btn-save-profile').onclick = async () => {
+    const firstname = document.getElementById('profile-firstname').value.trim();
+    const lastname = document.getElementById('profile-lastname').value.trim();
+    const phone = document.getElementById('profile-phone').value.trim();
+    const phonePublic = document.getElementById('phone-public').checked;
+    
+    if (!firstname || !lastname) {
+        showNotification('Veuillez remplir votre nom et prénom', 'error');
+        return;
     }
-
-    const loader = document.getElementById('loading-overlay');
-    loader.style.display = 'flex';
-
+    
+    showLoading();
+    
     try {
-        // Pour le moment, nous utilisons une image de remplacement 
-        // En attendant l'étape d'upload vers un serveur d'images (Cloud Storage ou ImgBB)
-        const placeholderImg = "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80";
-
-        await addDoc(collection(db, "properties"), {
-            ownerId: user.uid,
-            ownerEmail: user.email,
-            type: type,
-            city: city.toLowerCase(),
-            district: district.toLowerCase(),
-            rent: Number(rent),
-            visitFee: Number(fees),
-            imageUrl: placeholderImg,
-            createdAt: serverTimestamp()
-        });
-
-        showNotification("Annonce publiée avec succès !", "success");
-        closeModal('modal-publish');
-        loadOwnerProperties(user.uid); // Rafraîchit la liste du proprio
-
+        let photoURL = null;
+        const photoInput = document.getElementById('profile-photo-input');
+        
+        if (photoInput.files[0]) {
+            const photoRef = ref(storage, `profiles/${currentUser.uid}/photo.jpg`);
+            await uploadBytes(photoRef, photoInput.files[0]);
+            photoURL = await getDownloadURL(photoRef);
+        }
+        
+        const profileData = {
+            firstname,
+            lastname,
+            phone: phone || null,
+            phonePublic,
+            photoURL,
+            profileCompleted: true,
+            updatedAt: serverTimestamp()
+        };
+        
+        await updateDoc(doc(db, "users", currentUser.uid), profileData);
+        
+        userProfile = profileData;
+        updateDashboardProfile();
+        
+        showScreen('dashboard-screen');
+        loadDashboardData();
+        showNotification('Profil enregistré avec succès !');
     } catch (error) {
         console.error(error);
-        showNotification("Erreur lors de la publication", "error");
+        showNotification('Erreur lors de l\'enregistrement', 'error');
     } finally {
-        loader.style.display = 'none';
+        hideLoading();
     }
 };
 
-import { getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+function updateDashboardProfile() {
+    if (userProfile) {
+        const avatar = document.getElementById('dashboard-avatar');
+        const username = document.getElementById('dashboard-username');
+        
+        if (userProfile.photoURL) {
+            avatar.innerHTML = `<img src="${userProfile.photoURL}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        } else {
+            avatar.textContent = userProfile.firstname.charAt(0).toUpperCase();
+        }
+        
+        username.textContent = `${userProfile.firstname} ${userProfile.lastname}`;
+    }
+}
 
-async function loadAllProperties() {
-    const feed = document.getElementById('visitor-feed');
-    const q = query(collection(db, "properties"), orderBy("createdAt", "desc"));
+// ============== MODAL PUBLIER ==============
+document.getElementById('btn-open-add-modal').onclick = () => {
+    document.getElementById('modal-publish').classList.add('active');
+    resetPublishForm();
+};
+
+document.getElementById('close-publish').onclick = () => {
+    document.getElementById('modal-publish').classList.remove('active');
+};
+
+// Gestion des médias multiples
+document.getElementById('new-prop-media').onchange = (e) => {
+    const files = Array.from(e.target.files);
     
-    try {
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-            feed.innerHTML = '<p class="empty-msg">Aucun bien disponible pour le moment.</p>';
+    files.forEach(file => {
+        if (uploadedMediaFiles.length >= 6) {
+            showNotification('Maximum 6 médias autorisés', 'error');
             return;
         }
-
-        feed.innerHTML = ""; // Nettoie le feed
-        snapshot.forEach(doc => {
-            const p = doc.data();
-            const card = document.createElement('div');
-            card.className = 'property-card';
-            card.innerHTML = `
-                <div class="card-media">
-                    <img src="${p.imageUrl}" alt="Bien">
-                    <div class="visit-badge">${p.visitFee.toLocaleString()} FCFA / Visite</div>
-                </div>
-                <div class="card-info">
-                    <span class="prop-type-tag">${p.type}</span>
-                    <div class="card-header-info">
-                        <h3 class="prop-title">${p.district}</h3>
-                        <div class="prop-rent">
-                            <div class="rent-value">${p.rent.toLocaleString()}</div>
-                            <div class="rent-unit">FCFA / mois</div>
-                        </div>
-                    </div>
-                    <p class="prop-location"><i class="fa-solid fa-location-dot"></i> ${p.city}</p>
-                </div>
-            `;
-            feed.appendChild(card);
-        });
-    } catch (error) {
-        showNotification("Erreur de chargement des biens", "error");
-    }
-}
-
-import { where } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-
-// Variable pour stocker les biens localement et éviter de recharger Firebase sans arrêt
-let allPropertiesCache = [];
-
-/**
- * Filtre les biens en fonction de la saisie et de la puce sélectionnée
- */
-function filterProperties() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const activeFilter = document.querySelector('.filter-chip.active').dataset.type;
-    const feed = document.getElementById('visitor-feed');
-
-    const filtered = allPropertiesCache.filter(p => {
-        const matchesSearch = p.city.includes(searchTerm) || p.district.includes(searchTerm);
-        const matchesType = (activeFilter === 'all') || (p.type === activeFilter);
-        return matchesSearch && matchesType;
+        
+        uploadedMediaFiles.push(file);
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const grid = document.getElementById('media-preview-grid');
+            const addBtn = grid.querySelector('.add-media-btn');
+            
+            const mediaItem = document.createElement('div');
+            mediaItem.className = 'media-item';
+            
+            const isVideo = file.type.startsWith('video/');
+            
+            if (isVideo) {
+                mediaItem.innerHTML = `
+                    <video src="${event.target.result}"></video>
+                    <button class="remove-media-btn" onclick="removeMedia(${uploadedMediaFiles.length - 1})">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+            } else {
+                mediaItem.innerHTML = `
+                    <img src="${event.target.result}" alt="Média">
+                    <button class="remove-media-btn" onclick="removeMedia(${uploadedMediaFiles.length - 1})">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+            }
+            
+            grid.insertBefore(mediaItem, addBtn);
+            
+            if (uploadedMediaFiles.length >= 6) {
+                addBtn.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
     });
+    
+    e.target.value = '';
+};
 
-    renderFeed(filtered);
+window.removeMedia = (index) => {
+    uploadedMediaFiles.splice(index, 1);
+    renderMediaPreview();
+};
+
+function renderMediaPreview() {
+    const grid = document.getElementById('media-preview-grid');
+    grid.innerHTML = `
+        <label class="add-media-btn">
+            <i class="fa-solid fa-plus"></i>
+            <span>Ajouter</span>
+            <input type="file" id="new-prop-media" hidden accept="image/*,video/*" multiple>
+        </label>
+    `;
+    
+    uploadedMediaFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const addBtn = grid.querySelector('.add-media-btn');
+            const mediaItem = document.createElement('div');
+            mediaItem.className = 'media-item';
+            
+            const isVideo = file.type.startsWith('video/');
+            
+            if (isVideo) {
+                mediaItem.innerHTML = `
+                    <video src="${event.target.result}"></video>
+                    <button class="remove-media-btn" onclick="removeMedia(${index})">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+            } else {
+                mediaItem.innerHTML = `
+                    <img src="${event.target.result}" alt="Média">
+                    <button class="remove-media-btn" onclick="removeMedia(${index})">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+            }
+            
+            grid.insertBefore(mediaItem, addBtn);
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    if (uploadedMediaFiles.length >= 6) {
+        grid.querySelector('.add-media-btn').style.display = 'none';
+    }
+    
+    document.getElementById('new-prop-media').onchange = (e) => {
+        const files = Array.from(e.target.files);
+        files.forEach(file => {
+            if (uploadedMediaFiles.length < 6) {
+                uploadedMediaFiles.push(file);
+            }
+        });
+        renderMediaPreview();
+        e.target.value = '';
+    };
 }
 
-/**
- * Affiche les cartes dans le feed (optimisé)
- */
-function renderFeed(properties) {
-    const feed = document.getElementById('visitor-feed');
-    feed.innerHTML = "";
-
-    if (properties.length === 0) {
-        feed.innerHTML = `
-            <div class="empty-state">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <p>Aucun résultat pour cette recherche.</p>
-            </div>`;
+// Gestion des disponibilités
+document.getElementById('btn-add-availability').onclick = () => {
+    const date = document.getElementById('availability-date').value;
+    const time = document.getElementById('availability-time').value;
+    
+    if (!date || !time) {
+        showNotification('Veuillez sélectionner une date et une heure', 'error');
         return;
     }
+    
+    availabilitySlots.push({ date, time });
+    renderAvailabilityList();
+    
+    document.getElementById('availability-date').value = '';
+    document.getElementById('availability-time').value = '';
+};
 
-    properties.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'property-card';
-        card.innerHTML = `
-            <div class="card-media">
-                <img src="${p.imageUrl}" alt="Bien">
-                <div class="visit-badge">${p.visitFee.toLocaleString()} FCFA / Visite</div>
+function renderAvailabilityList() {
+    const list = document.getElementById('availability-list');
+    list.innerHTML = '';
+    
+    availabilitySlots.forEach((slot, index) => {
+        const item = document.createElement('div');
+        item.className = 'availability-item';
+        item.innerHTML = `
+            <div class="availability-info">
+                <div class="availability-date">${new Date(slot.date).toLocaleDateString('fr-FR', { 
+                    weekday: 'long', 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                })}</div>
+                <div class="availability-time">${slot.time}</div>
             </div>
-            <div class="card-info">
-                <span class="prop-type-tag">${p.type}</span>
-                <div class="card-header-info">
-                    <h3 class="prop-title">${p.district}</h3>
-                    <div class="prop-rent">
-                        <div class="rent-value">${p.rent.toLocaleString()}</div>
-                        <div class="rent-unit">FCFA / mois</div>
-                    </div>
-                </div>
-                <p class="prop-location"><i class="fa-solid fa-location-dot"></i> ${p.city}</p>
-            </div>
+            <button class="remove-availability-btn" onclick="removeAvailability(${index})">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         `;
-        feed.appendChild(card);
+        list.appendChild(item);
     });
 }
 
-// --- ÉCOUTEURS D'ÉVÉNEMENTS (RECHERCHE) ---
+window.removeAvailability = (index) => {
+    availabilitySlots.splice(index, 1);
+    renderAvailabilityList();
+};
 
-// Saisie dans la barre de recherche
-document.getElementById('search-input').oninput = filterProperties;
+function resetPublishForm() {
+    document.getElementById('new-prop-type').value = 'Studio';
+    document.getElementById('new-prop-city').value = '';
+    document.getElementById('new-prop-district').value = '';
+    document.getElementById('new-prop-rent').value = '';
+    document.getElementById('new-prop-fees').value = '';
+    document.getElementById('availability-date').value = '';
+    document.getElementById('availability-time').value = '';
+    
+    uploadedMediaFiles = [];
+    availabilitySlots = [];
+    
+    renderMediaPreview();
+    renderAvailabilityList();
+}
 
-// Clic sur les puces (Filtres)
-document.querySelectorAll('.filter-chip').forEach(chip => {
-    chip.onclick = function() {
-        document.querySelector('.filter-chip.active').classList.remove('active');
-        this.classList.add('active');
-        filterProperties();
-    };
-});
-
-async function loadOwnerData(uid) {
-    const q = query(collection(db, "properties"), where("ownerId", "==", uid));
+document.getElementById('btn-confirm-publish').onclick = async () => {
+    const type = document.getElementById('new-prop-type').value;
+    const city = document.getElementById('new-prop-city').value.trim();
+    const district = document.getElementById('new-prop-district').value.trim();
+    const rent = parseInt(document.getElementById('new-prop-rent').value);
+    const visitFee = parseInt(document.getElementById('new-prop-fees').value);
+    
+    if (!city || !district || !rent || !visitFee) {
+        showNotification('Veuillez remplir tous les champs', 'error');
+        return;
+    }
+    
+    if (uploadedMediaFiles.length === 0) {
+        showNotification('Veuillez ajouter au moins une photo', 'error');
+        return;
+    }
+    
+    showLoading();
     
     try {
-        const snapshot = await getDocs(q);
-        const count = snapshot.size; // Nombre de documents
+        // Upload des médias
+        const mediaUrls = [];
+        for (let i = 0; i < uploadedMediaFiles.length; i++) {
+            const file = uploadedMediaFiles[i];
+            const mediaRef = ref(storage, `properties/${currentUser.uid}/${Date.now()}_${i}`);
+            await uploadBytes(mediaRef, file);
+            const url = await getDownloadURL(mediaRef);
+            mediaUrls.push({
+                url,
+                type: file.type.startsWith('video/') ? 'video' : 'image'
+            });
+        }
         
-        // Mise à jour de l'affichage
-        document.getElementById('stat-ads-count').innerText = count;
+        const propertyData = {
+            type,
+            city,
+            district,
+            rent,
+            visitFee,
+            ownerId: currentUser.uid,
+            ownerName: `${userProfile.firstname} ${userProfile.lastname}`,
+            ownerPhone: userProfile.phonePublic ? userProfile.phone : null,
+            mediaUrls,
+            imageUrl: mediaUrls[0].url, // Pour compatibilité
+            availabilitySlots,
+            status: 'available',
+            createdAt: serverTimestamp()
+        };
         
-        // On pourrait aussi charger la liste spécifique ici
-        renderOwnerProperties(snapshot);
+        await addDoc(collection(db, "properties"), propertyData);
+        
+        document.getElementById('modal-publish').classList.remove('active');
+        loadDashboardData();
+        showNotification('Bien publié avec succès !');
+        resetPublishForm();
     } catch (error) {
-        console.error("Erreur stats:", error);
+        console.error(error);
+        showNotification('Erreur lors de la publication', 'error');
+    } finally {
+        hideLoading();
     }
+};
+
+// ============== MODAL MODIFIER ==============
+document.getElementById('close-edit-property').onclick = () => {
+    document.getElementById('modal-edit-property').classList.remove('active');
+};
+
+document.getElementById('btn-add-edit-availability').onclick = () => {
+    const date = document.getElementById('edit-availability-date').value;
+    const time = document.getElementById('edit-availability-time').value;
+    
+    if (!date || !time) {
+        showNotification('Veuillez sélectionner une date et une heure', 'error');
+        return;
+    }
+    
+    editAvailabilitySlots.push({ date, time });
+    renderEditAvailabilityList();
+    
+    document.getElementById('edit-availability-date').value = '';
+    document.getElementById('edit-availability-time').value = '';
+};
+
+function renderEditAvailabilityList() {
+    const list = document.getElementById('edit-availability-list');
+    list.innerHTML = '';
+    
+    editAvailabilitySlots.forEach((slot, index) => {
+        const item = document.createElement('div');
+        item.className = 'availability-item';
+        item.innerHTML = `
+            <div class="availability-info">
+                <div class="availability-date">${new Date(slot.date).toLocaleDateString('fr-FR', { 
+                    weekday: 'long', 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                })}</div>
+                <div class="availability-time">${slot.time}</div>
+            </div>
+            <button class="remove-availability-btn" onclick="removeEditAvailability(${index})">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        `;
+        list.appendChild(item);
+    });
 }
+
+window.removeEditAvailability = (index) => {
+    editAvailabilitySlots.splice(index, 1);
+    renderEditAvailabilityList();
+};
+
+window.openEditPropertyModal = async (propertyId) => {
+    currentEditPropertyId = propertyId;
+    
+    try {
+        const docRef = doc(db, "properties", propertyId);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            
+            document.getElementById('edit-prop-status').value = data.status || 'available';
+            document.getElementById('edit-prop-type').value = data.type;
+            document.getElementById('edit-prop-city').value = data.city;
+            document.getElementById('edit-prop-district').value = data.district;
+            document.getElementById('edit-prop-rent').value = data.rent;
+            document.getElementById('edit-prop-fees').value = data.visitFee;
+            
+            editAvailabilitySlots = data.availabilitySlots || [];
+            renderEditAvailabilityList();
+            
+            document.getElementById('modal-edit-property').classList.add('active');
+        }
+    } catch (error) {
+        console.error(error);
+        showNotification('Erreur de chargement', 'error');
+    }
+};
+
+document.getElementById('btn-save-edit-property').onclick = async () => {
+    const status = document.getElementById('edit-prop-status').value;
+    const type = document.getElementById('edit-prop-type').value;
+    const city = document.getEle
