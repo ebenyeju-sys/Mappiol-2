@@ -26,9 +26,8 @@ import {
     getDownloadURL 
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
-const { auth, db, storage } = window;
-
 // ============== VARIABLES GLOBALES ==============
+let auth, db, storage;
 let currentUser = null;
 let userProfile = null;
 let allPropertiesCache = [];
@@ -37,6 +36,30 @@ let currentDeletePropertyId = null;
 let uploadedMediaFiles = [];
 let availabilitySlots = [];
 let editAvailabilitySlots = [];
+let isSignupMode = false;
+
+// ============== INITIALISATION ==============
+function waitForFirebase() {
+    if (window.auth && window.db && window.storage) {
+        auth = window.auth;
+        db = window.db;
+        storage = window.storage;
+        console.log('Firebase initialized, setting up app...');
+        setupApp();
+    } else {
+        console.log('Waiting for Firebase...');
+        setTimeout(waitForFirebase, 100);
+    }
+}
+
+// Démarrer l'attente de Firebase
+waitForFirebase();
+
+// ============== CONFIGURATION PRINCIPALE ==============
+function setupApp() {
+    setupEventListeners();
+    setupAuthObserver();
+}
 
 // ============== GESTION DES ÉCRANS ==============
 function showScreen(screenId) {
@@ -67,169 +90,188 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// ============== NAVIGATION ==============
-document.getElementById('btn-enter-visitor').onclick = () => {
-    showScreen('visitor-screen');
-    loadAllProperties();
-};
+// ============== EVENT LISTENERS ==============
+function setupEventListeners() {
+    // Navigation
+    document.getElementById('btn-enter-visitor').onclick = () => {
+        console.log('Explorer clicked');
+        showScreen('visitor-screen');
+        loadAllProperties();
+    };
 
-document.getElementById('btn-enter-owner').onclick = () => {
-    showScreen('auth-screen');
-};
+    document.getElementById('btn-enter-owner').onclick = () => {
+        console.log('Espace Propriétaire clicked');
+        showScreen('auth-screen');
+    };
 
-document.getElementById('back-visitor').onclick = () => {
-    showScreen('landing-screen');
-};
-
-document.getElementById('back-auth').onclick = () => {
-    showScreen('landing-screen');
-};
-
-document.getElementById('back-profile-setup').onclick = () => {
-    showScreen('dashboard-screen');
-};
-
-document.getElementById('btn-logout').onclick = async () => {
-    try {
-        await signOut(auth);
+    document.getElementById('back-visitor').onclick = () => {
         showScreen('landing-screen');
-        showNotification('Déconnexion réussie');
-    } catch (error) {
-        showNotification('Erreur de déconnexion', 'error');
-    }
-};
+    };
+
+    document.getElementById('back-auth').onclick = () => {
+        showScreen('landing-screen');
+    };
+
+    document.getElementById('back-profile-setup').onclick = () => {
+        showScreen('dashboard-screen');
+    };
+
+    document.getElementById('btn-logout').onclick = async () => {
+        try {
+            await signOut(auth);
+            showScreen('landing-screen');
+            showNotification('Déconnexion réussie');
+        } catch (error) {
+            showNotification('Erreur de déconnexion', 'error');
+        }
+    };
+
+    // Authentification
+    setupAuthForm();
+    
+    // Profil
+    setupProfileForm();
+    
+    // Modals
+    setupModals();
+    
+    // Recherche
+    setupSearch();
+}
 
 // ============== AUTHENTIFICATION ==============
-let isSignupMode = false;
-
-document.getElementById('btn-toggle-signup').onclick = () => {
-    isSignupMode = !isSignupMode;
-    const btn = document.getElementById('btn-auth-action');
-    const toggle = document.querySelector('.auth-toggle p');
-    
-    if (isSignupMode) {
-        btn.textContent = "Créer un compte";
-        toggle.innerHTML = 'Déjà un compte ? <span id="btn-toggle-signup">Se connecter</span>';
-        document.querySelector('.auth-header-text h2').textContent = "Créer un compte";
-        document.querySelector('.auth-header-text p').textContent = "Rejoignez Mappiol dès maintenant.";
-    } else {
-        btn.textContent = "Se connecter";
-        toggle.innerHTML = 'Pas encore de compte ? <span id="btn-toggle-signup">Créer un compte</span>';
-        document.querySelector('.auth-header-text h2').textContent = "Bienvenue";
-        document.querySelector('.auth-header-text p').textContent = "Connectez-vous pour gérer vos biens.";
-    }
-    
-    document.getElementById('btn-toggle-signup').onclick = arguments.callee;
-};
-
-document.getElementById('auth-form').onsubmit = async (e) => {
-    e.preventDefault();
-    
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-pass').value;
-    
-    showLoading();
-    
-    try {
+function setupAuthForm() {
+    const toggleSignup = () => {
+        isSignupMode = !isSignupMode;
+        const btn = document.getElementById('btn-auth-action');
+        const toggle = document.querySelector('.auth-toggle p');
+        
         if (isSignupMode) {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            currentUser = userCredential.user;
-            
-            // Créer un document de profil vide
-            await setDoc(doc(db, "users", currentUser.uid), {
-                email: email,
-                createdAt: serverTimestamp(),
-                profileCompleted: false
-            });
-            
-            showScreen('profile-setup-screen');
-            showNotification('Compte créé avec succès !');
+            btn.textContent = "Créer un compte";
+            toggle.innerHTML = 'Déjà un compte ? <span id="btn-toggle-signup">Se connecter</span>';
+            document.querySelector('.auth-header-text h2').textContent = "Créer un compte";
+            document.querySelector('.auth-header-text p').textContent = "Rejoignez Mappiol dès maintenant.";
         } else {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            currentUser = userCredential.user;
-            
-            // Vérifier si le profil est complété
-            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-            
-            if (!userDoc.exists() || !userDoc.data().profileCompleted) {
+            btn.textContent = "Se connecter";
+            toggle.innerHTML = 'Pas encore de compte ? <span id="btn-toggle-signup">Créer un compte</span>';
+            document.querySelector('.auth-header-text h2').textContent = "Bienvenue";
+            document.querySelector('.auth-header-text p').textContent = "Connectez-vous pour gérer vos biens.";
+        }
+        
+        document.getElementById('btn-toggle-signup').onclick = toggleSignup;
+    };
+    
+    document.getElementById('btn-toggle-signup').onclick = toggleSignup;
+
+    document.getElementById('auth-form').onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('auth-email').value;
+        const password = document.getElementById('auth-pass').value;
+        
+        showLoading();
+        
+        try {
+            if (isSignupMode) {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                currentUser = userCredential.user;
+                
+                await setDoc(doc(db, "users", currentUser.uid), {
+                    email: email,
+                    createdAt: serverTimestamp(),
+                    profileCompleted: false
+                });
+                
                 showScreen('profile-setup-screen');
+                showNotification('Compte créé avec succès !');
             } else {
-                userProfile = userDoc.data();
-                showScreen('dashboard-screen');
-                loadDashboardData();
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                currentUser = userCredential.user;
+                
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                
+                if (!userDoc.exists() || !userDoc.data().profileCompleted) {
+                    showScreen('profile-setup-screen');
+                } else {
+                    userProfile = userDoc.data();
+                    showScreen('dashboard-screen');
+                    loadDashboardData();
+                }
+                
+                showNotification('Connexion réussie !');
+            }
+        } catch (error) {
+            console.error(error);
+            showNotification(error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    };
+}
+
+// ============== PROFIL ==============
+function setupProfileForm() {
+    document.getElementById('profile-photo-input').onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const circle = document.querySelector('.profile-photo-circle');
+                circle.innerHTML = `<img src="${event.target.result}" alt="Photo de profil">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    document.getElementById('btn-save-profile').onclick = async () => {
+        const firstname = document.getElementById('profile-firstname').value.trim();
+        const lastname = document.getElementById('profile-lastname').value.trim();
+        const phone = document.getElementById('profile-phone').value.trim();
+        const phonePublic = document.getElementById('phone-public').checked;
+        
+        if (!firstname || !lastname) {
+            showNotification('Veuillez remplir votre nom et prénom', 'error');
+            return;
+        }
+        
+        showLoading();
+        
+        try {
+            let photoURL = null;
+            const photoInput = document.getElementById('profile-photo-input');
+            
+            if (photoInput.files[0]) {
+                const photoRef = ref(storage, `profiles/${currentUser.uid}/photo.jpg`);
+                await uploadBytes(photoRef, photoInput.files[0]);
+                photoURL = await getDownloadURL(photoRef);
             }
             
-            showNotification('Connexion réussie !');
+            const profileData = {
+                firstname,
+                lastname,
+                phone: phone || null,
+                phonePublic,
+                photoURL,
+                profileCompleted: true,
+                updatedAt: serverTimestamp()
+            };
+            
+            await updateDoc(doc(db, "users", currentUser.uid), profileData);
+            
+            userProfile = profileData;
+            updateDashboardProfile();
+            
+            showScreen('dashboard-screen');
+            loadDashboardData();
+            showNotification('Profil enregistré avec succès !');
+        } catch (error) {
+            console.error(error);
+            showNotification('Erreur lors de l\'enregistrement', 'error');
+        } finally {
+            hideLoading();
         }
-    } catch (error) {
-        console.error(error);
-        showNotification(error.message, 'error');
-    } finally {
-        hideLoading();
-    }
-};
-
-// ============== GESTION DU PROFIL ==============
-document.getElementById('profile-photo-input').onchange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const circle = document.querySelector('.profile-photo-circle');
-            circle.innerHTML = `<img src="${event.target.result}" alt="Photo de profil">`;
-        };
-        reader.readAsDataURL(file);
-    }
-};
-
-document.getElementById('btn-save-profile').onclick = async () => {
-    const firstname = document.getElementById('profile-firstname').value.trim();
-    const lastname = document.getElementById('profile-lastname').value.trim();
-    const phone = document.getElementById('profile-phone').value.trim();
-    const phonePublic = document.getElementById('phone-public').checked;
-    
-    if (!firstname || !lastname) {
-        showNotification('Veuillez remplir votre nom et prénom', 'error');
-        return;
-    }
-    
-    showLoading();
-    
-    try {
-        let photoURL = null;
-        const photoInput = document.getElementById('profile-photo-input');
-        
-        if (photoInput.files[0]) {
-            const photoRef = ref(storage, `profiles/${currentUser.uid}/photo.jpg`);
-            await uploadBytes(photoRef, photoInput.files[0]);
-            photoURL = await getDownloadURL(photoRef);
-        }
-        
-        const profileData = {
-            firstname,
-            lastname,
-            phone: phone || null,
-            phonePublic,
-            photoURL,
-            profileCompleted: true,
-            updatedAt: serverTimestamp()
-        };
-        
-        await updateDoc(doc(db, "users", currentUser.uid), profileData);
-        
-        userProfile = profileData;
-        updateDashboardProfile();
-        
-        showScreen('dashboard-screen');
-        loadDashboardData();
-        showNotification('Profil enregistré avec succès !');
-    } catch (error) {
-        console.error(error);
-        showNotification('Erreur lors de l\'enregistrement', 'error');
-    } finally {
-        hideLoading();
-    }
-};
+    };
+}
 
 function updateDashboardProfile() {
     if (userProfile) {
@@ -246,18 +288,56 @@ function updateDashboardProfile() {
     }
 }
 
-// ============== MODAL PUBLIER ==============
-document.getElementById('btn-open-add-modal').onclick = () => {
-    document.getElementById('modal-publish').classList.add('active');
-    resetPublishForm();
-};
+// ============== MODALS ==============
+function setupModals() {
+    // Modal Publier
+    document.getElementById('btn-open-add-modal').onclick = () => {
+        document.getElementById('modal-publish').classList.add('active');
+        resetPublishForm();
+    };
 
-document.getElementById('close-publish').onclick = () => {
-    document.getElementById('modal-publish').classList.remove('active');
-};
+    document.getElementById('close-publish').onclick = () => {
+        document.getElementById('modal-publish').classList.remove('active');
+    };
+    
+    // Médias multiples
+    document.getElementById('new-prop-media').onchange = handleMediaUpload;
+    
+    // Disponibilités
+    document.getElementById('btn-add-availability').onclick = addAvailabilitySlot;
+    
+    // Publication
+    document.getElementById('btn-confirm-publish').onclick = publishProperty;
+    
+    // Modal Modifier
+    document.getElementById('close-edit-property').onclick = () => {
+        document.getElementById('modal-edit-property').classList.remove('active');
+    };
+    
+    document.getElementById('btn-add-edit-availability').onclick = addEditAvailabilitySlot;
+    document.getElementById('btn-save-edit-property').onclick = savePropertyEdit;
+    
+    // Modal Suppression
+    document.getElementById('btn-cancel-delete').onclick = () => {
+        document.getElementById('modal-delete-confirm').classList.remove('active');
+    };
+    
+    document.getElementById('btn-confirm-delete').onclick = confirmDelete;
+    
+    // Modal Validation
+    document.getElementById('btn-open-scan-modal').onclick = () => {
+        document.getElementById('modal-validate').classList.add('active');
+    };
 
-// Gestion des médias multiples
-document.getElementById('new-prop-media').onchange = (e) => {
+    document.getElementById('close-validate').onclick = () => {
+        document.getElementById('modal-validate').classList.remove('active');
+    };
+
+    document.getElementById('btn-confirm-code').onclick = validateVisit;
+}
+
+// Gestion des médias
+function handleMediaUpload(e) {
     const files = Array.from(e.target.files);
     
     files.forEach(file => {
@@ -267,49 +347,11 @@ document.getElementById('new-prop-media').onchange = (e) => {
         }
         
         uploadedMediaFiles.push(file);
-        
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const grid = document.getElementById('media-preview-grid');
-            const addBtn = grid.querySelector('.add-media-btn');
-            
-            const mediaItem = document.createElement('div');
-            mediaItem.className = 'media-item';
-            
-            const isVideo = file.type.startsWith('video/');
-            
-            if (isVideo) {
-                mediaItem.innerHTML = `
-                    <video src="${event.target.result}"></video>
-                    <button class="remove-media-btn" onclick="removeMedia(${uploadedMediaFiles.length - 1})">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                `;
-            } else {
-                mediaItem.innerHTML = `
-                    <img src="${event.target.result}" alt="Média">
-                    <button class="remove-media-btn" onclick="removeMedia(${uploadedMediaFiles.length - 1})">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                `;
-            }
-            
-            grid.insertBefore(mediaItem, addBtn);
-            
-            if (uploadedMediaFiles.length >= 6) {
-                addBtn.style.display = 'none';
-            }
-        };
-        reader.readAsDataURL(file);
     });
     
-    e.target.value = '';
-};
-
-window.removeMedia = (index) => {
-    uploadedMediaFiles.splice(index, 1);
     renderMediaPreview();
-};
+    e.target.value = '';
+}
 
 function renderMediaPreview() {
     const grid = document.getElementById('media-preview-grid');
@@ -333,14 +375,14 @@ function renderMediaPreview() {
             if (isVideo) {
                 mediaItem.innerHTML = `
                     <video src="${event.target.result}"></video>
-                    <button class="remove-media-btn" onclick="removeMedia(${index})">
+                    <button class="remove-media-btn" onclick="window.removeMedia(${index})">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 `;
             } else {
                 mediaItem.innerHTML = `
                     <img src="${event.target.result}" alt="Média">
-                    <button class="remove-media-btn" onclick="removeMedia(${index})">
+                    <button class="remove-media-btn" onclick="window.removeMedia(${index})">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 `;
@@ -355,20 +397,16 @@ function renderMediaPreview() {
         grid.querySelector('.add-media-btn').style.display = 'none';
     }
     
-    document.getElementById('new-prop-media').onchange = (e) => {
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
-            if (uploadedMediaFiles.length < 6) {
-                uploadedMediaFiles.push(file);
-            }
-        });
-        renderMediaPreview();
-        e.target.value = '';
-    };
+    document.getElementById('new-prop-media').onchange = handleMediaUpload;
 }
 
+window.removeMedia = (index) => {
+    uploadedMediaFiles.splice(index, 1);
+    renderMediaPreview();
+};
+
 // Gestion des disponibilités
-document.getElementById('btn-add-availability').onclick = () => {
+function addAvailabilitySlot() {
     const date = document.getElementById('availability-date').value;
     const time = document.getElementById('availability-time').value;
     
@@ -382,7 +420,7 @@ document.getElementById('btn-add-availability').onclick = () => {
     
     document.getElementById('availability-date').value = '';
     document.getElementById('availability-time').value = '';
-};
+}
 
 function renderAvailabilityList() {
     const list = document.getElementById('availability-list');
@@ -401,7 +439,7 @@ function renderAvailabilityList() {
                 })}</div>
                 <div class="availability-time">${slot.time}</div>
             </div>
-            <button class="remove-availability-btn" onclick="removeAvailability(${index})">
+            <button class="remove-availability-btn" onclick="window.removeAvailability(${index})">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         `;
@@ -430,7 +468,7 @@ function resetPublishForm() {
     renderAvailabilityList();
 }
 
-document.getElementById('btn-confirm-publish').onclick = async () => {
+async function publishProperty() {
     const type = document.getElementById('new-prop-type').value;
     const city = document.getElementById('new-prop-city').value.trim();
     const district = document.getElementById('new-prop-district').value.trim();
@@ -450,7 +488,6 @@ document.getElementById('btn-confirm-publish').onclick = async () => {
     showLoading();
     
     try {
-        // Upload des médias
         const mediaUrls = [];
         for (let i = 0; i < uploadedMediaFiles.length; i++) {
             const file = uploadedMediaFiles[i];
@@ -473,7 +510,7 @@ document.getElementById('btn-confirm-publish').onclick = async () => {
             ownerName: `${userProfile.firstname} ${userProfile.lastname}`,
             ownerPhone: userProfile.phonePublic ? userProfile.phone : null,
             mediaUrls,
-            imageUrl: mediaUrls[0].url, // Pour compatibilité
+            imageUrl: mediaUrls[0].url,
             availabilitySlots,
             status: 'available',
             createdAt: serverTimestamp()
@@ -491,59 +528,9 @@ document.getElementById('btn-confirm-publish').onclick = async () => {
     } finally {
         hideLoading();
     }
-};
-
-// ============== MODAL MODIFIER ==============
-document.getElementById('close-edit-property').onclick = () => {
-    document.getElementById('modal-edit-property').classList.remove('active');
-};
-
-document.getElementById('btn-add-edit-availability').onclick = () => {
-    const date = document.getElementById('edit-availability-date').value;
-    const time = document.getElementById('edit-availability-time').value;
-    
-    if (!date || !time) {
-        showNotification('Veuillez sélectionner une date et une heure', 'error');
-        return;
-    }
-    
-    editAvailabilitySlots.push({ date, time });
-    renderEditAvailabilityList();
-    
-    document.getElementById('edit-availability-date').value = '';
-    document.getElementById('edit-availability-time').value = '';
-};
-
-function renderEditAvailabilityList() {
-    const list = document.getElementById('edit-availability-list');
-    list.innerHTML = '';
-    
-    editAvailabilitySlots.forEach((slot, index) => {
-        const item = document.createElement('div');
-        item.className = 'availability-item';
-        item.innerHTML = `
-            <div class="availability-info">
-                <div class="availability-date">${new Date(slot.date).toLocaleDateString('fr-FR', { 
-                    weekday: 'long', 
-                    day: 'numeric', 
-                    month: 'long', 
-                    year: 'numeric' 
-                })}</div>
-                <div class="availability-time">${slot.time}</div>
-            </div>
-            <button class="remove-availability-btn" onclick="removeEditAvailability(${index})">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        `;
-        list.appendChild(item);
-    });
 }
 
-window.removeEditAvailability = (index) => {
-    editAvailabilitySlots.splice(index, 1);
-    renderEditAvailabilityList();
-};
-
+// Modification de bien
 window.openEditPropertyModal = async (propertyId) => {
     currentEditPropertyId = propertyId;
     
@@ -572,7 +559,28 @@ window.openEditPropertyModal = async (propertyId) => {
     }
 };
 
-document.getElementById('btn-save-edit-property').onclick = async () => {
-    const status = document.getElementById('edit-prop-status').value;
-    const type = document.getElementById('edit-prop-type').value;
-    const city = document.getEle
+function addEditAvailabilitySlot() {
+    const date = document.getElementById('edit-availability-date').value;
+    const time = document.getElementById('edit-availability-time').value;
+    
+    if (!date || !time) {
+        showNotification('Veuillez sélectionner une date et une heure', 'error');
+        return;
+    }
+    
+    editAvailabilitySlots.push({ date, time });
+    renderEditAvailabilityList();
+    
+    document.getElementById('edit-availability-date').value = '';
+    document.getElementById('edit-availability-time').value = '';
+}
+
+function renderEditAvailabilityList() {
+    const list = document.getElementById('edit-availability-list');
+    list.innerHTML = '';
+    
+    editAvailabilitySlots.forEach((slot, index) => {
+        const item = document.createElement('div');
+        item.className = 'availability-item';
+        item.innerHTML = `
+            <div class="availability-info">

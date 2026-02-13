@@ -60,77 +60,41 @@ body {
     padding: 0 20px;
 }
 
-/* NOUVEAU LOGO MAPPIOL AVEC EFFET CARTE */
+/* NOUVEAU LOGO MAPPIOL AVEC IMAGE */
 .brand-logo-large {
-    font-size: 56px;
-    font-weight: 800;
-    color: white;
-    letter-spacing: 2px;
     margin-bottom: 60px;
     position: relative;
     display: inline-block;
-    text-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    animation: float 3s ease-in-out infinite;
 }
 
-/* Effet de lignes de route dans les lettres */
-.brand-logo-large::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(255,255,255,0.3) 15%, 
-        rgba(255,255,255,0.5) 30%,
-        transparent 35%,
-        rgba(255,255,255,0.3) 45%,
-        rgba(255,255,255,0.5) 60%,
-        transparent 65%,
-        rgba(255,255,255,0.3) 75%,
-        rgba(255,255,255,0.5) 90%,
-        transparent 100%
-    );
-    transform: translateY(-50%) rotate(-2deg);
-    pointer-events: none;
+.logo-image {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
 }
 
-.brand-logo-large::after {
-    content: '';
-    position: absolute;
-    top: 30%;
-    left: 5%;
-    right: 5%;
-    height: 1.5px;
-    background: linear-gradient(90deg, 
-        rgba(255,255,255,0.2) 0%, 
-        transparent 20%,
-        rgba(255,255,255,0.3) 40%,
-        transparent 55%,
-        rgba(255,255,255,0.2) 70%,
-        transparent 100%
-    );
-    transform: rotate(1deg);
-    pointer-events: none;
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px);
+    }
+    50% { 
+        transform: translateY(-10px);
+    }
 }
 
-.geo-pin-wrapper {
-    display: inline-block;
-    position: relative;
-    color: #FCD34D;
-    animation: pulse-pin 2s ease-in-out infinite;
-    filter: drop-shadow(0 0 8px rgba(252, 211, 77, 0.5));
+/* Responsive logo */
+@media (max-width: 768px) {
+    .logo-image {
+        max-width: 320px;
+    }
 }
 
-@keyframes pulse-pin {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-/* Petites lignes supplémentaires dans certaines lettres */
-.brand-logo-large > span:not(.geo-pin-wrapper) {
-    position: relative;
+@media (max-width: 480px) {
+    .logo-image {
+        max-width: 280px;
+    }
 }
 
 .action-buttons-container {
@@ -1071,4 +1035,61 @@ body {
     top: 6px;
     right: 6px;
     width: 24px;
-    height: 2
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.add-media-btn {
+    aspect-ratio: 1;
+    border: 2px dashed var(--border-light);
+    border-radius: 12px;
+    background: var(--bg-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-media-btn:hover {
+    border-color: var(--primary-color);
+    background: rgba(79, 70, 229, 0.05);
+}
+
+.add-media-btn i {
+    font-size: 24px;
+    color: var(--text-secondary);
+}
+
+.add-media-btn span {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* NOUVEAU: Disponibilités */
+.availability-section {
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.availability-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.availability
