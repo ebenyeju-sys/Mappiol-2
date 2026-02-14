@@ -5,28 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mappiol - L'immobilier simplifié</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- ============== LANDING SCREEN ============== -->
+    <!-- LANDING SCREEN -->
     <section id="landing-screen" class="screen active-screen">
-        <div class="landing-center">
-            <div class="brand-logo-large">
-                <img src="1000012317.png" alt="Mappiol" class="logo-image">
+        <div class="landing-wrapper">
+            <!-- LOGO PNG - Remplacez "logo-mappiol.png" par le nom de votre fichier -->
+            <div class="brand-logo-container">
+                <img src="logo-mappiol.png" alt="Mappiol - L'immobilier simplifié" class="brand-logo-png">
             </div>
             
-            <div class="action-buttons-container">
-                <button class="btn-landing-primary" id="btn-enter-visitor">
-                    <div class="btn-content">
-                        <span>Explorer</span>
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </div>
+            <div class="landing-buttons">
+                <button class="btn-primary-landing" id="btn-enter-visitor">
+                    <span>Explorer</span>
+                    <i class="fa-solid fa-arrow-right"></i>
                 </button>
                 
-                <button class="btn-landing-secondary" id="btn-enter-owner">
+                <button class="btn-secondary-landing" id="btn-enter-owner">
                     Espace Propriétaire
                 </button>
             </div>
@@ -37,13 +43,17 @@
         </footer>
     </section>
 
-    <!-- ============== VISITOR SCREEN (EXPLORER) ============== -->
+    <!-- VISITOR SCREEN -->
     <section id="visitor-screen" class="screen">
-        <header class="app-header">
-            <button class="icon-btn" id="back-visitor"><i class="fa-solid fa-chevron-left"></i></button>
-            <h2 class="header-title">Explorer</h2>
+        <div class="app-header-minimal">
+            <button class="btn-back-home" id="back-visitor">
+                <i class="fa-solid fa-chevron-left"></i>
+                <span>Accueil</span>
+            </button>
+            <!-- Logo petit dans le header -->
+            <img src="logo-small.png" alt="Mappiol" class="header-logo">
             <div class="placeholder-spacer"></div>
-        </header>
+        </div>
 
         <div class="search-sticky-container">
             <div class="search-bar-wrapper">
@@ -68,25 +78,32 @@
         </div>
     </section>
 
-    <!-- ============== AUTH SCREEN ============== -->
+    <!-- AUTH SCREEN -->
     <section id="auth-screen" class="screen">
-        <button class="icon-btn absolute-top-left" id="back-auth"><i class="fa-solid fa-xmark"></i></button>
+        <button class="close-auth-btn" id="back-auth">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
 
-        <div class="auth-content-centered">
-            <div class="auth-header-text">
+        <div class="auth-card">
+            <!-- Logo dans la carte d'auth -->
+            <div class="auth-logo">
+                <img src="logo-small.png" alt="Mappiol" class="auth-logo-img">
+            </div>
+            
+            <div class="auth-header">
                 <h2>Bienvenue</h2>
                 <p>Connectez-vous pour gérer vos biens.</p>
             </div>
 
-            <form id="auth-form" class="clean-form">
+            <form class="auth-form" id="auth-form">
                 <div class="input-group">
-                    <input type="email" id="auth-email" placeholder="Email" required autocomplete="email">
                     <span class="input-icon"><i class="fa-regular fa-envelope"></i></span>
+                    <input type="email" class="input-simple" id="auth-email" placeholder="Email" required>
                 </div>
                 
                 <div class="input-group">
-                    <input type="password" id="auth-pass" placeholder="Mot de passe" required>
                     <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" class="input-simple" id="auth-pass" placeholder="Mot de passe" required>
                 </div>
 
                 <div class="auth-options">
@@ -104,95 +121,50 @@
         </div>
     </section>
 
-    <!-- ============== PROFILE SETUP SCREEN (NOUVEAU) ============== -->
-    <section id="profile-setup-screen" class="screen">
-        <header class="app-header">
-            <button class="icon-btn" id="back-profile-setup"><i class="fa-solid fa-chevron-left"></i></button>
-            <h2 class="header-title">Mon Profil</h2>
-            <div class="placeholder-spacer"></div>
-        </header>
-
-        <div class="profile-setup-content">
-            <div class="profile-photo-section">
-                <div class="profile-photo-upload">
-                    <label for="profile-photo-input" class="profile-photo-circle">
-                        <i class="fa-solid fa-user"></i>
-                    </label>
-                    <div class="photo-edit-btn">
-                        <i class="fa-solid fa-camera"></i>
-                    </div>
-                    <input type="file" id="profile-photo-input" hidden accept="image/*">
-                </div>
-                <p style="text-align: center; color: var(--text-secondary); font-size: 14px;">Ajouter une photo de profil</p>
-            </div>
-
-            <div class="profile-form-section">
-                <h3 class="form-section-title">Informations personnelles</h3>
-                
-                <div class="input-simple">
-                    <input type="text" id="profile-firstname" placeholder="Prénom" required>
-                </div>
-                
-                <div class="input-simple">
-                    <input type="text" id="profile-lastname" placeholder="Nom" required>
-                </div>
-                
-                <div class="input-simple">
-                    <input type="tel" id="profile-phone" placeholder="Numéro de téléphone (optionnel)">
-                </div>
-                
-                <div class="phone-visibility-option">
-                    <div class="checkbox-row">
-                        <input type="checkbox" id="phone-public">
-                        <label for="phone-public">Rendre mon numéro visible aux visiteurs</label>
-                    </div>
-                </div>
-
-                <button class="btn-primary-full" id="btn-save-profile">Enregistrer</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============== DASHBOARD SCREEN ============== -->
+    <!-- DASHBOARD SCREEN -->
     <section id="dashboard-screen" class="screen">
         <header class="dashboard-header">
-            <div class="user-profile">
-                <div class="avatar-placeholder" id="dashboard-avatar">P</div>
-                <div class="user-text">
+            <div class="user-profile" id="open-profile">
+                <div class="avatar-preview" id="user-avatar">
+                    <span id="avatar-initial">P</span>
+                </div>
+                <div class="user-info">
                     <span class="greeting">Bonjour,</span>
                     <strong class="username" id="dashboard-username">Propriétaire</strong>
                 </div>
             </div>
-            <button class="icon-btn-danger" id="btn-logout"><i class="fa-solid fa-power-off"></i></button>
+            <button class="btn-logout" id="btn-logout">
+                <i class="fa-solid fa-power-off"></i>
+            </button>
         </header>
 
         <div class="stats-card">
             <div class="stat-item">
+                <span class="stat-value" id="stat-visits-count">0</span>
                 <span class="stat-label">Visites Reçues</span>
-                <strong class="stat-value" id="stat-visits-count">0</strong>
             </div>
-            <div class="vertical-divider"></div>
+            <div class="stat-divider"></div>
             <div class="stat-item">
+                <span class="stat-value" id="stat-ads-count">0</span>
                 <span class="stat-label">Annonces</span>
-                <strong class="stat-value" id="stat-ads-count">0</strong>
             </div>
         </div>
 
         <div class="quick-actions">
-            <button class="action-btn primary" id="btn-open-add-modal">
+            <button class="action-btn primary" id="btn-open-publish">
                 <div class="icon-box"><i class="fa-solid fa-plus"></i></div>
                 <span>Publier</span>
             </button>
-            <button class="action-btn secondary" id="btn-open-scan-modal">
+            <button class="action-btn" id="btn-open-validate">
                 <div class="icon-box"><i class="fa-solid fa-qrcode"></i></div>
                 <span>Valider</span>
             </button>
         </div>
 
-        <div class="dashboard-list-section">
+        <div class="dashboard-section">
             <h3 class="section-title">Mes Biens en ligne</h3>
-            <div id="owner-properties-list" class="list-vertical">
-                <div class="empty-dashboard-state" id="empty-dashboard">
+            <div class="properties-list" id="properties-list">
+                <div class="empty-dashboard-state">
                     <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" alt="Vide" width="60">
                     <p>Vous n'avez aucune annonce.</p>
                 </div>
@@ -200,68 +172,119 @@
         </div>
     </section>
 
-    <!-- ============== MODAL PUBLIER (AMÉLIORÉ) ============== -->
-    <div id="modal-publish" class="modal-overlay">
+    <!-- MODAL: PROFILE -->
+    <div id="modal-profile" class="modal-overlay">
         <div class="modal-card">
             <header class="modal-header">
-                <h3>Nouveau Bien</h3>
-                <button class="close-modal-btn" id="close-publish"><i class="fa-solid fa-xmark"></i></button>
+                <h3>Mon Profil</h3>
+                <button class="close-modal-btn" id="close-profile">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </header>
             
-            <div class="modal-scroll-content">
-                <!-- Upload multiple photos/vidéos -->
-                <div class="media-upload-section">
-                    <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Photos et Vidéos</h4>
-                    <div class="media-grid" id="media-preview-grid">
-                        <label class="add-media-btn">
-                            <i class="fa-solid fa-plus"></i>
-                            <span>Ajouter</span>
-                            <input type="file" id="new-prop-media" hidden accept="image/*,video/*" multiple>
+            <div class="modal-content">
+                <div class="profile-photo-section">
+                    <div class="avatar-selector">
+                        <div class="avatar-preview">
+                            <img id="profile-photo-preview" src="" alt="" style="display:none;">
+                            <span id="profile-initial-large">P</span>
+                        </div>
+                        <label for="profile-photo-input" class="edit-badge">
+                            <i class="fa-solid fa-camera"></i>
                         </label>
+                        <input type="file" id="profile-photo-input" hidden accept="image/*">
                     </div>
                 </div>
 
                 <div class="form-grid">
-                    <div class="input-simple">
-                        <select id="new-prop-type">
-                            <option value="Studio">Studio</option>
-                            <option value="Appartement">Appartement</option>
-                            <option value="Chambre">Chambre</option>
-                            <option value="Villa">Villa</option>
-                        </select>
-                    </div>
-                    
                     <div class="input-row">
-                        <input type="text" id="new-prop-city" placeholder="Ville" class="input-half">
-                        <input type="text" id="new-prop-district" placeholder="Quartier" class="input-half">
+                        <input type="text" class="input-simple" id="profile-firstname" placeholder="Prénom">
+                        <input type="text" class="input-simple" id="profile-lastname" placeholder="Nom">
                     </div>
 
-                    <div class="input-simple">
-                        <input type="number" id="new-prop-rent" placeholder="Loyer mensuel (FCFA)">
-                    </div>
+                    <input type="tel" class="input-simple" id="profile-phone" placeholder="Numéro de téléphone">
 
-                    <div class="input-highlight">
-                        <input type="number" id="new-prop-fees" placeholder="Frais de visite (FCFA)">
-                        <small><i class="fa-solid fa-circle-info"></i> Montant payé par le visiteur</small>
+                    <div class="toggle-container">
+                        <label>
+                            <i class="fa-solid fa-eye"></i>
+                            <span>Rendre mon numéro visible</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="phone-visibility-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
                     </div>
                 </div>
+            </div>
 
-                <!-- Section Disponibilités -->
-                <div class="availability-section">
-                    <h4 class="availability-title">Disponibilités pour les visites</h4>
-                    <div class="availability-list" id="availability-list">
-                        <!-- Les créneaux ajoutés apparaîtront ici -->
-                    </div>
+            <footer class="modal-footer">
+                <button class="btn-primary-full" id="btn-save-profile">Enregistrer</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- MODAL: PUBLISH -->
+    <div id="modal-publish" class="modal-overlay">
+        <div class="modal-card">
+            <header class="modal-header">
+                <h3>Nouveau Bien</h3>
+                <button class="close-modal-btn" id="close-publish">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </header>
+            
+            <div class="modal-content">
+                <label for="new-prop-media" class="media-upload-container">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Ajouter photos/vidéos</span>
+                </label>
+                <input type="file" id="new-prop-media" hidden accept="image/*,video/*" multiple>
+                <div class="preview-grid" id="media-preview"></div>
+
+                <div class="form-grid">
+                    <select class="input-simple" id="new-prop-type">
+                        <option value="Studio">Studio</option>
+                        <option value="Appartement">Appartement</option>
+                        <option value="Chambre">Chambre</option>
+                        <option value="Villa">Villa</option>
+                    </select>
                     
-                    <div class="datetime-inputs">
-                        <input type="date" id="availability-date">
-                        <input type="time" id="availability-time">
+                    <div class="input-row">
+                        <input type="text" class="input-simple" id="new-prop-city" placeholder="Ville">
+                        <input type="text" class="input-simple" id="new-prop-district" placeholder="Quartier">
                     </div>
-                    
-                    <button class="add-availability-btn" id="btn-add-availability">
-                        <i class="fa-solid fa-plus"></i>
-                        Ajouter un créneau
-                    </button>
+
+                    <div class="location-input-wrapper">
+                        <input type="text" class="input-simple" id="new-prop-location" placeholder="Adresse complète">
+                        <button type="button" class="location-btn" id="get-location-btn" title="Utiliser ma position">
+                            <i class="fa-solid fa-location-crosshairs"></i>
+                        </button>
+                    </div>
+
+                    <input type="number" class="input-simple" id="new-prop-rent" placeholder="Loyer mensuel (FCFA)">
+
+                    <div style="background: var(--accent-light); padding: 16px; border-radius: var(--radius-md);">
+                        <input type="number" class="input-simple" id="new-prop-fees" placeholder="Frais de visite (FCFA)" style="margin-bottom: 8px;">
+                        <small style="color: var(--text-muted); font-size: 13px;">
+                            <i class="fa-solid fa-circle-info"></i> Montant payé par le visiteur
+                        </small>
+                    </div>
+
+                    <div class="availability-section">
+                        <h4>Périodes de disponibilité</h4>
+                        <div class="availability-slots" id="availability-slots">
+                            <div class="availability-slot">
+                                <input type="date" class="slot-date">
+                                <input type="time" class="slot-time">
+                                <button type="button" class="btn-remove-slot">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-add-slot" id="btn-add-slot">
+                            <i class="fa-solid fa-plus"></i> Ajouter un créneau
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -271,112 +294,33 @@
         </div>
     </div>
 
-    <!-- ============== MODAL VALIDER VISITE ============== -->
+    <!-- MODAL: VALIDATE -->
     <div id="modal-validate" class="modal-overlay">
         <div class="modal-card small-card">
-            <button class="close-modal-abs" id="close-validate"><i class="fa-solid fa-xmark"></i></button>
+            <button class="close-modal-abs" id="close-validate">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="validate-content">
-                <div class="icon-circle-top"><i class="fa-solid fa-check-to-slot"></i></div>
+                <div class="icon-circle">
+                    <i class="fa-solid fa-check-to-slot"></i>
+                </div>
                 <h3>Valider une visite</h3>
                 <p>Entrez le code fourni par le client</p>
-                <input type="number" id="visit-code-input" class="input-code-large" placeholder="0000">
+                <input type="number" class="input-code" id="visit-code-input" placeholder="0000" maxlength="4">
                 <button class="btn-primary-full" id="btn-confirm-code">Valider</button>
             </div>
         </div>
     </div>
 
-    <!-- ============== MODAL MODIFIER BIEN (NOUVEAU) ============== -->
-    <div id="modal-edit-property" class="modal-overlay">
-        <div class="modal-card">
-            <header class="modal-header">
-                <h3>Modifier le bien</h3>
-                <button class="close-modal-btn" id="close-edit-property"><i class="fa-solid fa-xmark"></i></button>
-            </header>
-            
-            <div class="modal-scroll-content">
-                <div class="form-grid">
-                    <div class="input-simple">
-                        <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600;">Statut du bien</label>
-                        <select id="edit-prop-status">
-                            <option value="available">Disponible</option>
-                            <option value="rented">Déjà loué</option>
-                        </select>
-                    </div>
-
-                    <div class="input-simple">
-                        <select id="edit-prop-type">
-                            <option value="Studio">Studio</option>
-                            <option value="Appartement">Appartement</option>
-                            <option value="Chambre">Chambre</option>
-                            <option value="Villa">Villa</option>
-                        </select>
-                    </div>
-                    
-                    <div class="input-row">
-                        <input type="text" id="edit-prop-city" placeholder="Ville" class="input-half">
-                        <input type="text" id="edit-prop-district" placeholder="Quartier" class="input-half">
-                    </div>
-
-                    <div class="input-simple">
-                        <input type="number" id="edit-prop-rent" placeholder="Loyer mensuel (FCFA)">
-                    </div>
-
-                    <div class="input-highlight">
-                        <input type="number" id="edit-prop-fees" placeholder="Frais de visite (FCFA)">
-                        <small><i class="fa-solid fa-circle-info"></i> Montant payé par le visiteur</small>
-                    </div>
-                </div>
-
-                <!-- Section Disponibilités modifiables -->
-                <div class="availability-section">
-                    <h4 class="availability-title">Disponibilités pour les visites</h4>
-                    <div class="availability-list" id="edit-availability-list">
-                        <!-- Les créneaux apparaîtront ici -->
-                    </div>
-                    
-                    <div class="datetime-inputs">
-                        <input type="date" id="edit-availability-date">
-                        <input type="time" id="edit-availability-time">
-                    </div>
-                    
-                    <button class="add-availability-btn" id="btn-add-edit-availability">
-                        <i class="fa-solid fa-plus"></i>
-                        Ajouter un créneau
-                    </button>
-                </div>
-            </div>
-
-            <footer class="modal-footer">
-                <button class="btn-primary-full" id="btn-save-edit-property">Enregistrer les modifications</button>
-            </footer>
-        </div>
-    </div>
-
-    <!-- ============== MODAL CONFIRMATION SUPPRESSION (NOUVEAU) ============== -->
-    <div id="modal-delete-confirm" class="modal-overlay">
-        <div class="modal-card small-card">
-            <div class="validate-content">
-                <div class="icon-circle-top" style="background: linear-gradient(135deg, #EF4444, #DC2626);">
-                    <i class="fa-solid fa-trash"></i>
-                </div>
-                <h3>Supprimer ce bien ?</h3>
-                <p>Cette action est irréversible. Le bien sera définitivement supprimé.</p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px;">
-                    <button class="btn-primary-full" id="btn-cancel-delete" style="background: var(--bg-light); color: var(--text-primary);">Annuler</button>
-                    <button class="btn-primary-full" id="btn-confirm-delete" style="background: var(--danger-color);">Supprimer</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============== LOADING & TOAST ============== -->
+    <!-- LOADING -->
     <div id="loading-overlay" class="loader-container">
         <div class="spinner"></div>
     </div>
 
+    <!-- TOAST -->
     <div id="toast-container" class="toast-wrapper"></div>
 
-    <!-- ============== FIREBASE CONFIG ============== -->
+    <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
@@ -388,6 +332,7 @@
             apiKey: "AIzaSyBfhlCUVHIH5S0xFZgl74srQv0qGKx60Zo",
             authDomain: "mappiol.firebaseapp.com",
             projectId: "mappiol",
+            databaseURL: "https://mappiol-default-rtdb.firebaseio.com",
             storageBucket: "mappiol.firebasestorage.app",
             messagingSenderId: "316903605477",
             appId: "1:316903605477:web:c922f5dd7a37a45567000c",
